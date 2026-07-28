@@ -16,6 +16,7 @@ const CACHE_FILE = "anual-fuerza-cache.json";
 const BG_COLOR = Color.dynamic(new Color("#FFFFFF"), new Color("#1C1C1E"));
 const TITLE_COLOR = Color.dynamic(new Color("#0F1115"), new Color("#F5F5F7"));
 const MONTH_MARK_COLOR = Color.dynamic(new Color("#000000", 0.55), new Color("#FFFFFF", 0.55));
+const CACHE_DOT_COLOR = Color.dynamic(new Color("#8E8E93"), new Color("#8E8E93"));
 const EMPTY_A = Color.dynamic(new Color("#3C3C43", 0.09), new Color("#FFFFFF", 0.08));
 const EMPTY_B = Color.dynamic(new Color("#3C3C43", 0.05), new Color("#FFFFFF", 0.045));
 const LEVEL_1 = Color.dynamic(new Color("#F97316", 0.35), new Color("#FB8A3C", 0.35));
@@ -62,10 +63,10 @@ async function loadDays() {
   try {
     const days = await fetchHeatmap();
     writeCache(days);
-    return days;
+    return { days, isCache: false };
   } catch (e) {
     const cached = readCache();
-    if (cached) return cached;
+    if (cached) return { days: cached, isCache: true };
     throw e;
   }
 }
@@ -96,7 +97,7 @@ function levelColorFor(count) {
 }
 
 // ================= DRAW =================
-function draw(weekCounts) {
+function draw(weekCounts, isCache) {
   const scale = 3; // nitidez en pantallas retina
   const W = 155 * scale;
   const H = 155 * scale;
@@ -112,6 +113,12 @@ function draw(weekCounts) {
   ctx.setFont(Font.boldSystemFont(12 * scale));
   ctx.setTextColor(TITLE_COLOR);
   ctx.drawText(TITLE, new Point(PAD, PAD));
+
+  if (isCache) {
+    const dotSize = 5 * scale;
+    ctx.setFillColor(CACHE_DOT_COLOR);
+    ctx.fillEllipse(new Rect(W - PAD - dotSize, PAD + 2 * scale, dotSize, dotSize));
+  }
 
   const cols = 8;
   const rows = 7;
@@ -153,9 +160,9 @@ function draw(weekCounts) {
 const widget = new ListWidget();
 
 try {
-  const days = await loadDays();
+  const { days, isCache } = await loadDays();
   const weekCounts = aggregateByWeek(days);
-  widget.backgroundImage = draw(weekCounts);
+  widget.backgroundImage = draw(weekCounts, isCache);
 } catch (e) {
   widget.backgroundColor = BG_COLOR;
   const title = widget.addText("⚠️ Error de datos");
