@@ -72,6 +72,8 @@ async function loadDays() {
 }
 
 // ================= AGGREGATE =================
+// agrupa los días sueltos devueltos por el worker en 52 semanas;
+// semana 51 = la más reciente (contiene hoy), semana 0 = hace 52 semanas
 function aggregateByWeek(days) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -88,7 +90,7 @@ function aggregateByWeek(days) {
 }
 
 function levelColorFor(count) {
-  if (count <= 0) return null;
+  if (count <= 0) return null; // se resuelve con el tinte de mes
   if (count === 1) return LEVEL_1;
   if (count === 2) return LEVEL_2;
   return LEVEL_3;
@@ -96,7 +98,7 @@ function levelColorFor(count) {
 
 // ================= DRAW =================
 function draw(weekCounts, isCache) {
-  const scale = 3;
+  const scale = 3; // nitidez en pantallas retina
   const W = 155 * scale;
   const H = 155 * scale;
   const PAD = 13 * scale;
