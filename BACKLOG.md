@@ -1,0 +1,37 @@
+# Backlog — Widgets de entrenamiento
+
+> Ver `HANDOFF.md` para contexto de la sesión que armó esto (2026-07-28) y `docs/superpowers/plans/2026-07-28-entrenamiento-widgets.md` para el detalle task-por-task.
+
+## Completado (2026-07-28)
+
+### Backend
+- [x] Bucket `racquet` separado de `cardio` en `health-worker` (tenis/pádel/squash)
+- [x] Endpoint `GET /workouts/heatmap?category=X&days=N` — deployado a producción, verificado
+- [x] MCP server `mcp-health` — enum `getWorkouts` actualizado con `racquet`, buildeado
+- [x] Docs de `health-worker` (README.md, CLAUDE.md) actualizadas
+- [x] `health-worker/` y `Health/` versionados en git por primera vez
+
+### Widgets
+- [x] `mes-combinado/` — calendario del mes, punto naranja/verde por tipo
+- [x] `anual-fuerza/` — heatmap semanal (52 semanas, 8×7), naranja, indicador de caché
+- [x] `anual-padel-tenis/` — igual, verde
+- [x] Repo `entrenamiento-widgets` creado, pusheado a GitHub (público)
+
+## Pendiente
+
+### Setup manual (solo Cal, en el iPhone)
+- [ ] Guardar `HEALTH_API_KEY` en Keychain del dispositivo (ver HANDOFF.md)
+- [ ] Instalar los 3 loaders como scripts en Scriptable
+- [ ] Agregar los 3 widgets Small al home screen
+
+### Verificación (Task 16 del plan)
+- [ ] Confirmar los 3 widgets contra el mockup aprobado (números/puntos no se salen, heatmap legible)
+- [ ] Probar dark mode real del dispositivo (ojo: `DrawContext` con `Color.dynamic` queda "horneado" al modo del momento de ejecución — limitación conocida, no bug)
+- [ ] Probar sin red (modo avión) — confirmar fallback a caché, nunca en blanco
+- [ ] Sanity check: comparar un día conocido contra lo que muestra Apple Salud directamente
+- [ ] Confirmar visualmente que `ctx.fillEllipse` (indicador de caché) se ve bien — API confirmada por docs oficiales pero sin precedente previo en los scripts de Cal
+
+### Ideas para más adelante (no comprometidas)
+- [ ] **Tool `getWorkoutHeatmap` en el MCP de Jano** — hoy Jano solo puede consultar `/workouts/summary` conversacionalmente, no `/workouts/heatmap`. Si en algún momento Cal quiere preguntarle a Jano "cómo viene mi heatmap de fuerza este año", hace falta agregar esa tool (mismo patrón `fetchHealth` + `READ_ONLY` ya establecido en `mcp-servers/servers/health/src/index.ts`).
+- [ ] **Endurecer el caché de `mes-combinado` contra cruce de mes** — si el fetch falla justo en el cambio de mes, la caché vieja (mes anterior) se filtra a "sin actividad este mes" en vez de mostrar error/aviso de caché — edge case angosto, detectado en code review, no arreglado (aceptado para v1).
+- [ ] Evaluar si vale la pena agregar un indicador "(cache)" también a `mes-combinado` (hoy solo lo tienen los 2 widgets anuales — el mensual no tiene espacio en el layout aprobado).
