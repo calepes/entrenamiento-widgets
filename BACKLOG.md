@@ -17,6 +17,7 @@
 - [x] `mes-combinado/` sin título (2026-07-29) — se sacó el texto del mes, padding más chico y la grilla (encabezado, números, filas) creció para ocupar todo el widget
 - [x] `mes-combinado/` **diseño APROBADO por Cal (2026-07-29)** — causa raíz del descuadre encontrada: `centerAlignContent()` no centra en horizontal en un stack vertical. Fix: todas las celdas renderizan texto del mismo ancho (FIGURE SPACE U+2007 + monoespaciada + un solo tamaño de fuente). Ver HANDOFF.md.
 - [x] `mes-combinado/` centrado real confirmado en pantalla (2026-07-29) — canvas del widget Small confirmado por Cal (iPhone 15/16 no-Pro, 158×158pt), padding horizontal Y vertical calculados con esa medida exacta en vez de spacers flexibles (que resultaron no confiables en Scriptable, ver HANDOFF.md). Encabezado L M X J V S D al mismo tamaño que los números. Captura final: centrado parejo en los cuatro lados.
+- [x] **Fix (2026-07-29): los 2 widgets anuales mostraban actividad en meses futuros.** Eran una ventana MÓVIL de 52 semanas pero con las iniciales de mes hardcodeadas en bloques fijos asumiendo arranque en enero — los datos estaban bien, mentían las etiquetas. Ahora cubren el AÑO CALENDARIO real (52-53 semanas), con iniciales calculadas de fechas y las semanas futuras en un tono mucho más tenue. Detectado por Cal.
 - [x] `anual-fuerza/` — heatmap semanal (52 semanas, 8×7), naranja, indicador de caché
 - [x] `anual-padel-tenis/` — igual, verde
 - [x] Repo `entrenamiento-widgets` creado, pusheado a GitHub (público)
