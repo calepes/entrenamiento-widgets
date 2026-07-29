@@ -12,7 +12,7 @@
 
 const BASE_URL = "https://health.carlos-cb4.workers.dev";
 const CATEGORY = "racquet";
-const TITLE = "Pádel · Tenis";
+const TITLE = "Padel";
 const CACHE_FILE = "anual-padel-tenis-cache.json";
 
 const BG_COLOR = Color.dynamic(new Color("#FFFFFF"), new Color("#1C1C1E"));
