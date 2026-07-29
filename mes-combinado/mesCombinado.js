@@ -19,6 +19,20 @@ const WEEKDAY_COLOR = Color.dynamic(new Color("#3C3C43", 0.6), new Color("#EBEBF
 const WEEKDAY_LABELS = ["L", "M", "X", "J", "V", "S", "D"];
 const COL_WIDTH = 20;
 
+// medidas usadas para calcular el padding vertical (ver más abajo) — deben
+// coincidir con lo que realmente se renderiza en la sección WIDGET UI
+const BASE_PAD = 6;
+const HEADER_HEIGHT = 14;
+const HEADER_GAP = 3;
+const ROW_HEIGHT = 19; // número bold 13pt (~15.5 de alto) + spacing 0.5 + puntito 3
+const ROW_GAP = 3;
+// tamaño típico del widget Small en los iPhone modernos (390pt de ancho) —
+// no hay forma de leer el tamaño real del widget desde Scriptable, así que
+// se asume este valor; si el dispositivo real es más chico el padding
+// calculado se recorta a 0 (nunca negativo) y como mucho queda sin centrar
+// perfecto, nunca se corta contenido (ver cálculo de EXTRA_TARGET más abajo)
+const ASSUMED_CANVAS = 158;
+
 // ================= AUTH =================
 function apiKey() {
   if (!Keychain.contains("HEALTH_API_KEY")) {
@@ -83,32 +97,39 @@ function dateStrFor(day) {
   return `${monthPrefix}-${String(day).padStart(2, "0")}`;
 }
 
+// filas de la grilla del mes actual — no depende de los datos de Health,
+// así que se calcula acá arriba y sirve para el padding vertical de abajo
+const totalCells = firstWeekday + daysInMonth;
+const rows = Math.ceil(totalCells / 7);
+
+// padding vertical calculado para centrar la grilla dentro del widget:
+// nada de spacers flexibles (ver HANDOFF.md — no se expanden de forma
+// confiable ni en la raíz del ListWidget ni anidados más de un nivel),
+// en cambio se calcula cuánto aire falta a cada lado según cuántas filas
+// tiene el mes y se reparte como padding fijo, mismo mecanismo que ya
+// usan todos los widgets probados de Cal (setPadding/addSpacer con
+// números fijos, nunca flexibles — ver Claude Max.js)
+const gridHeight = HEADER_HEIGHT + HEADER_GAP + rows * ROW_HEIGHT + (rows - 1) * ROW_GAP;
+const extraVertical = Math.max(0, (ASSUMED_CANVAS - 2 * BASE_PAD - gridHeight) / 2);
+const vPad = BASE_PAD + extraVertical;
+
 // ================= WIDGET UI =================
 // sin título: todo el widget es la grilla (pedido de Cal — el mes ya se
 // infiere por ser "el mes actual", no hace falta repetirlo como texto)
 const widget = new ListWidget();
-widget.setPadding(6, 6, 6, 6);
+widget.setPadding(vPad, BASE_PAD, vPad, BASE_PAD);
 
 try {
   const { strengthDays, racquetDays } = await loadMonthData();
   const strengthSet = new Set(strengthDays.filter(d => isCurrentMonth(d.date)).map(d => d.date));
   const racquetSet = new Set(racquetDays.filter(d => isCurrentMonth(d.date)).map(d => d.date));
 
-  // contenedor exterior único: los spacers flexibles (sin longitud) SOLO
-  // se expanden de forma confiable cuando están dentro de un WidgetStack
-  // explícito, no puestos directo en la raíz del ListWidget (ningún script
-  // ya probado de Cal usa addSpacer() sin argumento a nivel widget — todos
-  // los que centran/empujan contenido lo hacen dentro de un stack anidado,
-  // ver Dólar Binance.js). outerColumn es el único hijo de `widget`, así que
-  // hereda el alto completo del widget y sus spacers internos sí centran.
-  const outerColumn = widget.addStack();
-  outerColumn.layoutVertically();
-  outerColumn.addSpacer();
-
-  // fila exterior con spacers flexibles a los lados — mismo mecanismo,
-  // ahora en el eje horizontal, para centrar la grilla de ancho fijo
-  // (7×COL_WIDTH) dentro del ancho variable del widget real
-  const outerRow = outerColumn.addStack();
+  // fila exterior con spacers flexibles a los lados — ESTE spacer sí funciona
+  // porque está anidado en un WidgetStack (outerRow) que es hijo DIRECTO de
+  // `widget`; centra la grilla de ancho fijo (7×COL_WIDTH) dentro del ancho
+  // variable del widget real. (No confundir con el centrado vertical, que
+  // se resuelve arriba con padding calculado, no con spacers.)
+  const outerRow = widget.addStack();
   outerRow.layoutHorizontally();
   outerRow.addSpacer();
   const grid = outerRow.addStack();
@@ -132,10 +153,7 @@ try {
     t.textColor = WEEKDAY_COLOR;
   }
 
-  grid.addSpacer(2);
-
-  const totalCells = firstWeekday + daysInMonth;
-  const rows = Math.ceil(totalCells / 7);
+  grid.addSpacer(HEADER_GAP);
 
   for (let r = 0; r < rows; r++) {
     const rowStack = grid.addStack();
@@ -182,10 +200,8 @@ try {
         dot.backgroundColor = ACCENT_RACQUET;
       }
     }
-    if (r < rows - 1) grid.addSpacer(2);
+    if (r < rows - 1) grid.addSpacer(ROW_GAP);
   }
-
-  outerColumn.addSpacer();
 } catch (e) {
   const msg = widget.addText(String(e.message || e));
   msg.font = Font.systemFont(11);
