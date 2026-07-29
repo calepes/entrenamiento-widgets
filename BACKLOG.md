@@ -12,7 +12,8 @@
 - [x] `health-worker/` y `Health/` versionados en git por primera vez
 
 ### Widgets
-- [x] `mes-combinado/` — calendario del mes, punto naranja/verde por tipo
+- [x] `mes-combinado/` — calendario del mes, punto naranja/verde por tipo (v1)
+- [x] `mes-combinado/` rediseñado (2026-07-29) — grilla realmente alineada (columnas con ancho fijo), encabezado L M X J V S D, números grandes coloreados directo por tipo, puntito chico solo para "hiciste los dos"
 - [x] `anual-fuerza/` — heatmap semanal (52 semanas, 8×7), naranja, indicador de caché
 - [x] `anual-padel-tenis/` — igual, verde
 - [x] Repo `entrenamiento-widgets` creado, pusheado a GitHub (público)
@@ -27,6 +28,7 @@
 
 ### Verificación (Task 16 del plan)
 - [ ] Confirmar los 3 widgets contra el mockup aprobado (números/puntos no se salen, heatmap legible)
+- [ ] Confirmar el rediseño de `mes-combinado` en pantalla real: encabezado L M X J V S D alineado con la grilla, y que un mes de 6 filas no se corte (presupuesto vertical quedó ajustado tras agregar el encabezado)
 - [ ] Probar dark mode real del dispositivo (ojo: `DrawContext` con `Color.dynamic` queda "horneado" al modo del momento de ejecución — limitación conocida, no bug)
 - [ ] Probar sin red (modo avión) — confirmar fallback a caché, nunca en blanco
 - [ ] Sanity check: comparar un día conocido contra lo que muestra Apple Salud directamente
