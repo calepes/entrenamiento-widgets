@@ -167,9 +167,13 @@ function draw(weekCounts, isCache) {
   const cellW = (gridWidth - gap * (cols - 1)) / cols;
   const cellH = (gridHeight - gap * (rows - 1)) / rows;
 
+  // orden de lectura tipo texto: semana 1 arriba a la izquierda, se avanza
+  // de izquierda a derecha y se baja de fila en fila hasta la última semana
+  // del año abajo a la derecha (antes se llenaba columna por columna hacia
+  // abajo y luego se saltaba a la derecha, que se leía al revés)
   for (let w = 0; w < TOTAL_WEEKS; w++) {
-    const col = Math.floor(w / rows);
-    const row = w % rows;
+    const row = Math.floor(w / cols);
+    const col = w % cols;
     const x = PAD + col * (cellW + gap);
     const y = gridTop + row * (cellH + gap);
 
