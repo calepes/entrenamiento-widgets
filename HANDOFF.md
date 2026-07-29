@@ -46,6 +46,23 @@ Checklist completo en el plan (sección Task 16): confirmar contra el mockup apr
 - **Incidente de manejo del token:** el primer token generado quedó expuesto una vez en el chat por error (se pegó su valor en un mensaje de confirmación). Cal lo revocó y generó uno nuevo; el segundo se manejó correctamente (leído de una nota en iCloud, nunca mostrado en texto). Las notas temporales de iCloud usadas para pasar el token ya fueron borradas.
 - Quedó un archivo `.dev.vars` con el `HEALTH_API_KEY` real en `health-worker/` (gitignoreado) para poder correr `wrangler dev` local — sigue ahí, útil para testing futuro.
 
+## Rediseño 2026-07-29: sin título, grilla a pantalla completa
+
+Cal pidió sacar el título del mes y que la grilla ocupe todo el widget (tras confirmar por screenshot que el rediseño anterior — grilla alineada + encabezado L M X J V S D — ya se veía bien, solo sobraba el texto). Cambios en `mes-combinado/mesCombinado.js` (commit `203c3e1`):
+- Se eliminó el bloque `monthName`/`titleLabel` y su spacer.
+- `setPadding(8, 8, 6, 8)` → `setPadding(6, 6, 6, 6)`.
+- `COL_WIDTH` 19 → 20 (7 columnas × 20 = 140pt + 12pt de padding horizontal = 152pt, dentro de los ~155pt del widget Small).
+- Encabezado: celda `Size(COL_WIDTH, 9)` → `(COL_WIDTH, 10)`, fuente `systemFont(7)` → `(8)`.
+- Spacer post-encabezado: 1 → 2. Spacer entre filas: 1.5 → 2.
+- Números: `boldSystemFont(12)`/`systemFont(11)` → `(13)`/`(12)`.
+- Puntito "hiciste los dos": `Size(2.5, 2.5)` + `cornerRadius 1.25` → `Size(3, 3)` + `cornerRadius 1.5`.
+
+Presupuesto vertical para el caso peor (mes de 6 filas): padding 12pt + encabezado 10pt + spacer 2pt + 6 filas (~18.5pt c/u: número bold 13 ≈15.5pt de alto + spacing 0.5 + dot 3pt) ≈ 111pt + 5 spacers entre filas × 2pt = 10pt → total ≈ 145pt, con ~10pt de margen contra el límite de ~155pt del widget Small. No se tocó `firstWeekday`/`daysInMonth` ni la lógica de datos — cambio puramente visual.
+
+No requiere reinstalar nada: es el mismo loader ya deployado en la carpeta de Scriptable de Cal, así que la próxima vez que abra "Mes Combinado" (o Scriptable sincronice de fondo) va a bajar esta versión del código sola.
+
+**Pendiente:** confirmación visual de Cal con un nuevo screenshot (mismo ítem de Task 16 en BACKLOG.md).
+
 ## Decisiones de diseño tomadas en el camino (por si hace falta el porqué)
 
 - El diseño pasó por varias iteraciones documentadas en el spec: heatmap anual diario→semanal (ilegible a escala Small), puntos por tipo→fondo alternado por mes (Opción B ganó sobre etiqueta lateral), 3 widgets finales (no 4 ni 2).
