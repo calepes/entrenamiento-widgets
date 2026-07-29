@@ -107,8 +107,8 @@ const totalCells = firstWeekday + daysInMonth;
 const rows = Math.ceil(totalCells / 7);
 
 // padding vertical calculado: matemática exacta, no estimación de fuente
-// (ver comentario de CELL_HEIGHT arriba)
-const gridWidth = 7 * COL_WIDTH;
+// (ver comentario de CELL_HEIGHT arriba). El ancho NO se calcula acá — el
+// centrado horizontal lo resuelve cada fila por su cuenta (ver más abajo).
 // filas totales de la grilla = encabezado + una por semana; gaps = una
 // menos que filas totales (entre cada par de filas consecutivas)
 const totalCellRows = rows + 1;
@@ -119,8 +119,8 @@ const vPad = Math.max(MIN_PAD, (CANVAS - gridHeight) / 2);
 // sin título: todo el widget es la grilla (pedido de Cal — el mes ya se
 // infiere por ser "el mes actual", no hace falta repetirlo como texto)
 const widget = new ListWidget();
-// padding horizontal mínimo — el centrado horizontal real lo hace outerRow
-// (spacers flexibles) más abajo, no este padding
+// padding horizontal mínimo — el centrado horizontal real lo hacen los
+// spacers de cada fila (ver addCenteredRow más abajo), no este padding
 widget.setPadding(vPad, MIN_PAD, vPad, MIN_PAD);
 
 try {
@@ -128,28 +128,34 @@ try {
   const strengthSet = new Set(strengthDays.filter(d => isCurrentMonth(d.date)).map(d => d.date));
   const racquetSet = new Set(racquetDays.filter(d => isCurrentMonth(d.date)).map(d => d.date));
 
-  // outerRow (hijo DIRECTO de widget) + spacers flexibles a los lados: ESTE
-  // mecanismo de centrado horizontal ya está probado (funcionó en versiones
-  // anteriores) — se había sacado al confirmar el tamaño exacto del canvas
-  // y reemplazado por padding calculado, pero un bug real y documentado de
-  // Scriptable (foro talk.automators.fm: WidgetStacks horizontales con
-  // ancho "auto" pueden desalinearse entre sí — Scriptable usa el más ancho
-  // como referencia) hacía que las filas no quedaran realmente parejas. Acá
-  // se restaura outerRow Y además se le da a CADA fila (encabezado y cada
-  // semana) un ancho explícito (gridWidth), no "auto", para blindar contra
-  // ese bug de raíz.
-  const outerRow = widget.addStack();
-  outerRow.layoutHorizontally();
-  outerRow.addSpacer();
-  const grid = outerRow.addStack();
-  grid.layoutVertically();
-  outerRow.addSpacer();
+  // CENTRADO HORIZONTAL — cada fila se centra a sí misma
+  //
+  // Los intentos anteriores centraban el BLOQUE entero (un `outerRow` con
+  // spacers, conteniendo un `grid` vertical con todas las filas adentro).
+  // Eso falla porque el ancho del bloque lo determina Scriptable a partir
+  // de sus filas hijas, y si ese cálculo no coincide con el ancho real
+  // renderizado, TODO el bloque queda corrido (Cal lo vio en pantalla:
+  // ~30pt de margen izquierdo contra ~60pt del derecho).
+  //
+  // Acá cada fila (encabezado y cada semana) es hija DIRECTA de `widget`
+  // —un solo nivel de anidamiento, el único donde `addSpacer()` flexible
+  // está confirmado funcionando— y lleva sus PROPIOS spacers a los lados.
+  // Así cada fila ocupa el ancho completo disponible y centra sus 7 celdas
+  // por su cuenta: ninguna fila puede quedar corrida respecto a otra,
+  // porque ninguna depende del ancho computado de un contenedor común.
+  const addCenteredRow = () => {
+    const row = widget.addStack();
+    row.layoutHorizontally();
+    row.addSpacer(); // empuja desde la izquierda
+    const cells = row.addStack();
+    cells.layoutHorizontally();
+    row.addSpacer(); // empuja desde la derecha → las 7 celdas quedan centradas
+    return cells;
+  };
 
   // encabezado de días de la semana (L M X J V S D — mismo ancho fijo que las columnas de días,
   // mismo tamaño de fuente que los números del mes para que no se vea desproporcionado)
-  const headerRow = grid.addStack();
-  headerRow.layoutHorizontally();
-  headerRow.size = new Size(gridWidth, CELL_HEIGHT); // ancho explícito, no auto
+  const headerRow = addCenteredRow();
   for (const label of WEEKDAY_LABELS) {
     const cell = headerRow.addStack();
     cell.size = CELL_SIZE; // mismo tamaño que las celdas de número — misma fila de grilla
@@ -163,12 +169,10 @@ try {
     t.textColor = WEEKDAY_COLOR;
   }
 
-  grid.addSpacer(ROW_GAP);
+  widget.addSpacer(ROW_GAP);
 
   for (let r = 0; r < rows; r++) {
-    const rowStack = grid.addStack();
-    rowStack.layoutHorizontally();
-    rowStack.size = new Size(gridWidth, CELL_HEIGHT); // mismo ancho explícito que headerRow
+    const rowStack = addCenteredRow(); // mismo mecanismo de centrado que el encabezado
 
     for (let c = 0; c < 7; c++) {
       const cellIndex = r * 7 + c;
@@ -217,7 +221,7 @@ try {
         dot.backgroundColor = DOT_COLOR;
       }
     }
-    if (r < rows - 1) grid.addSpacer(ROW_GAP);
+    if (r < rows - 1) widget.addSpacer(ROW_GAP);
   }
 } catch (e) {
   const msg = widget.addText(String(e.message || e));
