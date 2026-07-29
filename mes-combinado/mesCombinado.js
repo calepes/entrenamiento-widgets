@@ -54,6 +54,19 @@ const NUM_SIZE = 13;
 // centrado fino; 0 lo desactiva.
 const LEFT_NUDGE = 2;
 
+// TODAS las celdas renderizan un texto de exactamente 2 caracteres de ancho:
+// los días 1-9 y las letras del encabezado se rellenan con FIGURE SPACE
+// (U+2007), un espacio que en fuente monoespaciada mide exactamente lo mismo
+// que un dígito (y que, a diferencia del espacio normal, no corre riesgo de
+// ser colapsado o recortado). Con esto la grilla queda pareja SIN depender de
+// centerAlignContent(): Cal reportó que los números de un dígito y el
+// encabezado se veían corridos a la izquierda pese a tener esa llamada, o sea
+// que en un stack vertical centerAlignContent() no centra el eje horizontal
+// como se había asumido. Si todos los textos miden lo mismo, da igual cómo
+// los alinee Scriptable — las columnas coinciden igual.
+const FIGURE_SPACE = " ";
+const pad2 = (s) => (String(s).length >= 2 ? String(s) : FIGURE_SPACE + s);
+
 // ================= AUTH =================
 function apiKey() {
   if (!Keychain.contains("HEALTH_API_KEY")) {
@@ -184,9 +197,9 @@ try {
     // centrar acá) es el eje principal y queda sin efecto (bug encontrado en review)
     cell.layoutVertically();
     cell.centerAlignContent();
-    const t = cell.addText(label);
-    // monoespaciada y del mismo tamaño que los números: así la letra de cada
-    // día cae exactamente sobre el centro de su columna, no aproximadamente
+    // pad2: la letra ocupa el mismo ancho de 2 caracteres que los números,
+    // así cae en la misma posición que ellos dentro de la columna
+    const t = cell.addText(pad2(label));
     t.font = Font.semiboldMonospacedSystemFont(NUM_SIZE);
     t.textColor = WEEKDAY_COLOR;
   }
@@ -230,7 +243,9 @@ try {
       //      peso, así que bold y regular al mismo tamaño ocupan exactamente
       //      lo mismo; cuando eran tamaños distintos (14 vs 13) las columnas
       //      quedaban geométricamente distintas entre sí.
-      const numLabel = cellStack.addText(String(dayNum));
+      // pad2: los días 1-9 llevan un FIGURE SPACE adelante para medir lo mismo
+      // que los de dos dígitos (ver comentario de pad2 arriba)
+      const numLabel = cellStack.addText(pad2(dayNum));
       if (hasStrength || hasRacquet) {
         numLabel.font = Font.boldMonospacedSystemFont(NUM_SIZE);
         numLabel.textColor = hasStrength ? ACCENT_STRENGTH : ACCENT_RACQUET;
