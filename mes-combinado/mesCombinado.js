@@ -17,7 +17,7 @@ const NUM_COLOR = Color.dynamic(new Color("#3C3C43", 0.45), new Color("#EBEBF5",
 const WEEKDAY_COLOR = Color.dynamic(new Color("#3C3C43", 0.35), new Color("#EBEBF5", 0.35));
 
 const WEEKDAY_LABELS = ["L", "M", "X", "J", "V", "S", "D"];
-const COL_WIDTH = 19;
+const COL_WIDTH = 20;
 
 // ================= AUTH =================
 function apiKey() {
@@ -84,14 +84,10 @@ function dateStrFor(day) {
 }
 
 // ================= WIDGET UI =================
+// sin título: todo el widget es la grilla (pedido de Cal — el mes ya se
+// infiere por ser "el mes actual", no hace falta repetirlo como texto)
 const widget = new ListWidget();
-widget.setPadding(8, 8, 6, 8);
-
-const monthName = now.toLocaleDateString("es-BO", { month: "long" });
-const titleLabel = widget.addText(monthName.charAt(0).toUpperCase() + monthName.slice(1));
-titleLabel.font = Font.boldSystemFont(11);
-
-widget.addSpacer(2);
+widget.setPadding(6, 6, 6, 6);
 
 try {
   const { strengthDays, racquetDays } = await loadMonthData();
@@ -103,18 +99,18 @@ try {
   headerRow.layoutHorizontally();
   for (const label of WEEKDAY_LABELS) {
     const cell = headerRow.addStack();
-    cell.size = new Size(COL_WIDTH, 9);
+    cell.size = new Size(COL_WIDTH, 10);
     // vertical, no horizontal: centerAlignContent() solo centra en el eje
     // transversal — con layoutHorizontally() el ancho (que es lo que hay que
     // centrar acá) es el eje principal y queda sin efecto (bug encontrado en review)
     cell.layoutVertically();
     cell.centerAlignContent();
     const t = cell.addText(label);
-    t.font = Font.systemFont(7);
+    t.font = Font.systemFont(8);
     t.textColor = WEEKDAY_COLOR;
   }
 
-  widget.addSpacer(1);
+  widget.addSpacer(2);
 
   const totalCells = firstWeekday + daysInMonth;
   const rows = Math.ceil(totalCells / 7);
@@ -148,23 +144,23 @@ try {
       // WidgetText.centerAlignText() no tiene efecto dentro de un stack
       const numLabel = cellStack.addText(String(dayNum));
       if (hasStrength || hasRacquet) {
-        numLabel.font = Font.boldSystemFont(12);
+        numLabel.font = Font.boldSystemFont(13);
         numLabel.textColor = hasStrength ? ACCENT_STRENGTH : ACCENT_RACQUET;
       } else {
-        numLabel.font = Font.systemFont(11);
+        numLabel.font = Font.systemFont(12);
         numLabel.textColor = NUM_COLOR;
       }
 
       // puntito solo para el caso "hiciste los dos" — reservado en todas las
       // celdas con día real para que la altura de fila no varíe entre celdas
       const dot = cellStack.addStack();
-      dot.size = new Size(2.5, 2.5);
+      dot.size = new Size(3, 3);
       if (hasBoth) {
-        dot.cornerRadius = 1.25;
+        dot.cornerRadius = 1.5;
         dot.backgroundColor = ACCENT_RACQUET;
       }
     }
-    if (r < rows - 1) widget.addSpacer(1.5);
+    if (r < rows - 1) widget.addSpacer(2);
   }
 } catch (e) {
   const msg = widget.addText(String(e.message || e));
