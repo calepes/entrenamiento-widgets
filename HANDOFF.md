@@ -19,13 +19,18 @@ Repo nuevo: `https://github.com/calepes/entrenamiento-widgets` (público, patró
 
 ## Pendiente — Task 15 (parte manual, solo Cal puede hacerla en su iPhone)
 
+Los 3 loaders ya están desplegados directo en la carpeta de iCloud de Scriptable (2026-07-29), byte-idénticos a los del repo — no hace falta crearlos a mano en la app, solo esperar a que sincronicen (o forzar sync abriendo Scriptable) y usarlos:
+- `Mes Combinado.js`
+- `Año Fuerza.js`
+- `Año Pádel · Tenis.js`
+
 1. **Guardar `HEALTH_API_KEY` en el Keychain del dispositivo** (una sola vez, script ad-hoc en Scriptable, correr y borrar):
    ```javascript
    Keychain.set("HEALTH_API_KEY", "EL_VALOR_REAL");
    ```
    (valor real en `~/.claude/secrets/apps.env` en la Mac)
-2. **Instalar los 3 loaders** como scripts nuevos en Scriptable (contenido de `mes-combinado/loader.js`, `anual-fuerza/loader.js`, `anual-padel-tenis/loader.js` — ya en GitHub, se pueden pegar directo).
-3. **Agregar los 3 widgets Small al home screen.**
+2. ~~Instalar los 3 loaders~~ — ya hecho, ver arriba.
+3. **Agregar los 3 widgets Small al home screen** (long-press → Editar → widget de Scriptable → elegir "Mes Combinado" / "Año Fuerza" / "Año Pádel · Tenis", tamaño Small).
 
 ## Pendiente — Task 16: verificación final end-to-end
 

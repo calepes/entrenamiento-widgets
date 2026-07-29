@@ -16,13 +16,13 @@
 - [x] `anual-fuerza/` — heatmap semanal (52 semanas, 8×7), naranja, indicador de caché
 - [x] `anual-padel-tenis/` — igual, verde
 - [x] Repo `entrenamiento-widgets` creado, pusheado a GitHub (público)
+- [x] Los 3 loaders deployados directo en la carpeta iCloud de Scriptable (2026-07-29) — `Mes Combinado.js`, `Año Fuerza.js`, `Año Pádel · Tenis.js`
 
 ## Pendiente
 
 ### Setup manual (solo Cal, en el iPhone)
 - [ ] Guardar `HEALTH_API_KEY` en Keychain del dispositivo (ver HANDOFF.md)
-- [ ] Instalar los 3 loaders como scripts en Scriptable
-- [ ] Agregar los 3 widgets Small al home screen
+- [ ] Agregar los 3 widgets Small al home screen (ya no hace falta instalarlos a mano, ver arriba)
 
 ### Verificación (Task 16 del plan)
 - [ ] Confirmar los 3 widgets contra el mockup aprobado (números/puntos no se salen, heatmap legible)
