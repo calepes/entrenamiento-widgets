@@ -94,35 +94,41 @@ try {
   const strengthSet = new Set(strengthDays.filter(d => isCurrentMonth(d.date)).map(d => d.date));
   const racquetSet = new Set(racquetDays.filter(d => isCurrentMonth(d.date)).map(d => d.date));
 
-  // spacer flexible arriba — mismo mecanismo que el de abajo, pero en el eje
-  // vertical del widget: centra la grilla completa cuando un mes de 4-5
-  // filas no llena las 6 filas de altura máxima reservada
-  widget.addSpacer();
+  // contenedor exterior único: los spacers flexibles (sin longitud) SOLO
+  // se expanden de forma confiable cuando están dentro de un WidgetStack
+  // explícito, no puestos directo en la raíz del ListWidget (ningún script
+  // ya probado de Cal usa addSpacer() sin argumento a nivel widget — todos
+  // los que centran/empujan contenido lo hacen dentro de un stack anidado,
+  // ver Dólar Binance.js). outerColumn es el único hijo de `widget`, así que
+  // hereda el alto completo del widget y sus spacers internos sí centran.
+  const outerColumn = widget.addStack();
+  outerColumn.layoutVertically();
+  outerColumn.addSpacer();
 
-  // fila exterior con spacers flexibles a los lados — ListWidget no centra
-  // sus stacks hijos por default (quedaban pegados a la izquierda), este es
-  // el patrón oficial de Scriptable para centrar un stack de ancho fijo
-  // (grilla de 7×COL_WIDTH) dentro del ancho variable del widget real
-  const outerRow = widget.addStack();
+  // fila exterior con spacers flexibles a los lados — mismo mecanismo,
+  // ahora en el eje horizontal, para centrar la grilla de ancho fijo
+  // (7×COL_WIDTH) dentro del ancho variable del widget real
+  const outerRow = outerColumn.addStack();
   outerRow.layoutHorizontally();
   outerRow.addSpacer();
   const grid = outerRow.addStack();
   grid.layoutVertically();
   outerRow.addSpacer();
 
-  // encabezado de días de la semana (L M X J V S D — mismo ancho fijo que las columnas de días)
+  // encabezado de días de la semana (L M X J V S D — mismo ancho fijo que las columnas de días,
+  // mismo tamaño de fuente que los números del mes para que no se vea desproporcionado)
   const headerRow = grid.addStack();
   headerRow.layoutHorizontally();
   for (const label of WEEKDAY_LABELS) {
     const cell = headerRow.addStack();
-    cell.size = new Size(COL_WIDTH, 12);
+    cell.size = new Size(COL_WIDTH, 14);
     // vertical, no horizontal: centerAlignContent() solo centra en el eje
     // transversal — con layoutHorizontally() el ancho (que es lo que hay que
     // centrar acá) es el eje principal y queda sin efecto (bug encontrado en review)
     cell.layoutVertically();
     cell.centerAlignContent();
     const t = cell.addText(label);
-    t.font = Font.semiboldSystemFont(9);
+    t.font = Font.semiboldSystemFont(12);
     t.textColor = WEEKDAY_COLOR;
   }
 
@@ -179,7 +185,7 @@ try {
     if (r < rows - 1) grid.addSpacer(2);
   }
 
-  widget.addSpacer();
+  outerColumn.addSpacer();
 } catch (e) {
   const msg = widget.addText(String(e.message || e));
   msg.font = Font.systemFont(11);
