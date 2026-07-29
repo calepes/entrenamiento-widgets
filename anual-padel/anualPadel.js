@@ -3,7 +3,7 @@
 // icon-color: green; icon-glyph: table-tennis;
 
 /*************************************************
- * AÑO — PÁDEL · TENIS · heatmap semanal del AÑO CALENDARIO en curso
+ * AÑO — PADEL · heatmap semanal del AÑO CALENDARIO en curso
  * (enero → diciembre, grid 8×7). Fondo alternado por mes + inicial en
  * la 1ª semana de cada mes. Las semanas que todavía no ocurrieron se
  * dibujan más tenues.
@@ -13,7 +13,7 @@
 const BASE_URL = "https://health.carlos-cb4.workers.dev";
 const CATEGORY = "racquet";
 const TITLE = "Padel";
-const CACHE_FILE = "anual-padel-tenis-cache.json";
+const CACHE_FILE = "anual-padel-cache.json";
 
 const BG_COLOR = Color.dynamic(new Color("#FFFFFF"), new Color("#1C1C1E"));
 const TITLE_COLOR = Color.dynamic(new Color("#0F1115"), new Color("#F5F5F7"));

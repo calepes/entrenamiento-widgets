@@ -1,10 +1,10 @@
-// Scriptable Loader — Año Pádel · Tenis (Entrenamiento)
+// Scriptable Loader — Año Padel (Entrenamiento)
 // Copia este código en Scriptable. Descarga y ejecuta
 // siempre la última versión del widget desde GitHub.
 
 const REPO = "calepes/entrenamiento-widgets";
 const BRANCH = "main";
-const FILE = "anual-padel-tenis/anualPadelTenis.js";
+const FILE = "anual-padel/anualPadel.js";
 // cache-busting: raw.githubusercontent.com manda cache-control: max-age=300,
 // y sin esto el propio dispositivo (no el CDN de GitHub) puede reusar una
 // respuesta vieja hasta 5 min sin volver a pedirle nada al servidor

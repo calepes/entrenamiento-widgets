@@ -19,9 +19,9 @@
 - [x] `mes-combinado/` centrado real confirmado en pantalla (2026-07-29) — canvas del widget Small confirmado por Cal (iPhone 15/16 no-Pro, 158×158pt), padding horizontal Y vertical calculados con esa medida exacta en vez de spacers flexibles (que resultaron no confiables en Scriptable, ver HANDOFF.md). Encabezado L M X J V S D al mismo tamaño que los números. Captura final: centrado parejo en los cuatro lados.
 - [x] **Fix (2026-07-29): los 2 widgets anuales mostraban actividad en meses futuros.** Eran una ventana MÓVIL de 52 semanas pero con las iniciales de mes hardcodeadas en bloques fijos asumiendo arranque en enero — los datos estaban bien, mentían las etiquetas. Ahora cubren el AÑO CALENDARIO real (52-53 semanas), con iniciales calculadas de fechas y las semanas futuras en un tono mucho más tenue. Detectado por Cal.
 - [x] `anual-fuerza/` — heatmap semanal (52 semanas, 8×7), naranja, indicador de caché
-- [x] `anual-padel-tenis/` — igual, verde
+- [x] `anual-padel/` — igual, verde
 - [x] Repo `entrenamiento-widgets` creado, pusheado a GitHub (público)
-- [x] Los 3 loaders deployados directo en la carpeta iCloud de Scriptable (2026-07-29) — `Mes Combinado.js`, `Año Fuerza.js`, `Año Pádel · Tenis.js`
+- [x] Los 3 loaders deployados directo en la carpeta iCloud de Scriptable (2026-07-29) — `Mes Combinado.js`, `Año Fuerza.js`, `Año Padel.js`
 - [x] Fix del bug real detectado on-device: `eval()` no soporta top-level `await` en ningún motor JS — los 3 loaders (repo + iCloud) envuelven ahora el código en una IIFE async antes de `eval`
 
 ## Pendiente
@@ -29,10 +29,10 @@
 ### Setup manual (solo Cal, en el iPhone)
 - [ ] Guardar `HEALTH_API_KEY` en Keychain del dispositivo (ver HANDOFF.md)
 - [ ] Agregar los 3 widgets Small al home screen (ya no hace falta instalarlos a mano, ver arriba)
-- [ ] **`Mes Combinado.js` en iCloud está corriendo como copia directa, no como loader** (cambio temporal 2026-07-29 para iterar el diseño más rápido, sin depender de la caché de `raw.githubusercontent.com`). Ahora que el centrado quedó confirmado, falta volver a poner el loader ahí (mismo patrón que `Año Fuerza.js`/`Año Pádel · Tenis.js`, que nunca se tocaron) para que vuelva a auto-actualizarse desde GitHub.
+- [ ] **`Mes Combinado.js` en iCloud está corriendo como copia directa, no como loader** (cambio temporal 2026-07-29 para iterar el diseño más rápido, sin depender de la caché de `raw.githubusercontent.com`). Ahora que el centrado quedó confirmado, falta volver a poner el loader ahí (mismo patrón que `Año Fuerza.js`/`Año Padel.js`, que nunca se tocaron) para que vuelva a auto-actualizarse desde GitHub.
 
 ### Verificación (Task 16 del plan)
-- [ ] Confirmar los 3 widgets contra el mockup aprobado (números/puntos no se salen, heatmap legible) — `mes-combinado` ya confirmado (ver arriba), faltan `anual-fuerza` y `anual-padel-tenis`
+- [ ] Confirmar los 3 widgets contra el mockup aprobado (números/puntos no se salen, heatmap legible) — `mes-combinado` ya confirmado (ver arriba), faltan `anual-fuerza` y `anual-padel`
 - [x] Confirmar el rediseño de `mes-combinado` en pantalla real — centrado horizontal y vertical confirmado por Cal (2026-07-29). Falta confirmar específicamente un mes de 6 filas (julio 2026, usado para todas las pruebas, tiene 5) — presupuesto: `vPad = max(6, (158 - gridHeight)/2)` nunca corta contenido gracias al `Math.max`, pero vale la pena mirar cómo se ve un mes de 6 filas cuando llegue uno.
 - [ ] Probar dark mode real del dispositivo (ojo: `DrawContext` con `Color.dynamic` queda "horneado" al modo del momento de ejecución — limitación conocida, no bug)
 - [ ] Probar sin red (modo avión) — confirmar fallback a caché, nunca en blanco

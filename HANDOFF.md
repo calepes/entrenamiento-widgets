@@ -15,14 +15,14 @@ Contexto para retomar exactamente donde quedó la sesión. Plan completo: `docs/
 Repo nuevo: `https://github.com/calepes/entrenamiento-widgets` (público, patrón loader+eval igual a `tipo-de-cambio-Bolivia`).
 - `mes-combinado/` — calendario del mes, punto por tipo (naranja fuerza / verde pádel-tenis).
 - `anual-fuerza/` — heatmap semanal 52 semanas (grid 8×7), naranja, con indicador de caché (punto gris via `ctx.fillEllipse`, agregado en code review).
-- `anual-padel-tenis/` — igual, verde, mismo indicador de caché desde el arranque.
+- `anual-padel/` — igual, verde, mismo indicador de caché desde el arranque.
 
 ## Pendiente — Task 15 (parte manual, solo Cal puede hacerla en su iPhone)
 
 Los 3 loaders ya están desplegados directo en la carpeta de iCloud de Scriptable (2026-07-29, actualizados de nuevo el mismo día con el fix de caché de abajo) — no hace falta crearlos a mano en la app, solo esperar a que sincronicen (o forzar sync abriendo Scriptable) y usarlos:
 - `Mes Combinado.js`
 - `Año Fuerza.js`
-- `Año Pádel · Tenis.js`
+- `Año Padel.js`
 
 1. **Guardar `HEALTH_API_KEY` en el Keychain del dispositivo** (una sola vez, script ad-hoc en Scriptable, correr y borrar):
    ```javascript
@@ -30,7 +30,7 @@ Los 3 loaders ya están desplegados directo en la carpeta de iCloud de Scriptabl
    ```
    (valor real en `~/.claude/secrets/apps.env` en la Mac)
 2. ~~Instalar los 3 loaders~~ — ya hecho, ver arriba.
-3. **Agregar los 3 widgets Small al home screen** (long-press → Editar → widget de Scriptable → elegir "Mes Combinado" / "Año Fuerza" / "Año Pádel · Tenis", tamaño Small).
+3. **Agregar los 3 widgets Small al home screen** (long-press → Editar → widget de Scriptable → elegir "Mes Combinado" / "Año Fuerza" / "Año Padel", tamaño Small).
 
 ## Pendiente — Task 16: verificación final end-to-end
 
