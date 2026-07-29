@@ -14,7 +14,7 @@ const CACHE_FILE = "mes-combinado-cache.json";
 const ACCENT_STRENGTH = Color.dynamic(new Color("#F97316"), new Color("#FB8A3C"));
 const ACCENT_RACQUET  = Color.dynamic(new Color("#22C55E"), new Color("#34D399"));
 const NUM_COLOR = Color.dynamic(new Color("#3C3C43", 0.45), new Color("#EBEBF5", 0.45));
-const WEEKDAY_COLOR = Color.dynamic(new Color("#3C3C43", 0.35), new Color("#EBEBF5", 0.35));
+const WEEKDAY_COLOR = Color.dynamic(new Color("#3C3C43", 0.6), new Color("#EBEBF5", 0.6));
 
 const WEEKDAY_LABELS = ["L", "M", "X", "J", "V", "S", "D"];
 const COL_WIDTH = 20;
@@ -94,29 +94,40 @@ try {
   const strengthSet = new Set(strengthDays.filter(d => isCurrentMonth(d.date)).map(d => d.date));
   const racquetSet = new Set(racquetDays.filter(d => isCurrentMonth(d.date)).map(d => d.date));
 
+  // fila exterior con spacers flexibles a los lados — ListWidget no centra
+  // sus stacks hijos por default (quedaban pegados a la izquierda), este es
+  // el patrón oficial de Scriptable para centrar un stack de ancho fijo
+  // (grilla de 7×COL_WIDTH) dentro del ancho variable del widget real
+  const outerRow = widget.addStack();
+  outerRow.layoutHorizontally();
+  outerRow.addSpacer();
+  const grid = outerRow.addStack();
+  grid.layoutVertically();
+  outerRow.addSpacer();
+
   // encabezado de días de la semana (L M X J V S D — mismo ancho fijo que las columnas de días)
-  const headerRow = widget.addStack();
+  const headerRow = grid.addStack();
   headerRow.layoutHorizontally();
   for (const label of WEEKDAY_LABELS) {
     const cell = headerRow.addStack();
-    cell.size = new Size(COL_WIDTH, 10);
+    cell.size = new Size(COL_WIDTH, 12);
     // vertical, no horizontal: centerAlignContent() solo centra en el eje
     // transversal — con layoutHorizontally() el ancho (que es lo que hay que
     // centrar acá) es el eje principal y queda sin efecto (bug encontrado en review)
     cell.layoutVertically();
     cell.centerAlignContent();
     const t = cell.addText(label);
-    t.font = Font.systemFont(8);
+    t.font = Font.semiboldSystemFont(9);
     t.textColor = WEEKDAY_COLOR;
   }
 
-  widget.addSpacer(2);
+  grid.addSpacer(2);
 
   const totalCells = firstWeekday + daysInMonth;
   const rows = Math.ceil(totalCells / 7);
 
   for (let r = 0; r < rows; r++) {
-    const rowStack = widget.addStack();
+    const rowStack = grid.addStack();
     rowStack.layoutHorizontally();
 
     for (let c = 0; c < 7; c++) {
@@ -160,7 +171,7 @@ try {
         dot.backgroundColor = ACCENT_RACQUET;
       }
     }
-    if (r < rows - 1) widget.addSpacer(2);
+    if (r < rows - 1) grid.addSpacer(2);
   }
 } catch (e) {
   const msg = widget.addText(String(e.message || e));
