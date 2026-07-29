@@ -48,6 +48,11 @@ const CELL_SIZE = new Size(COL_WIDTH, CELL_HEIGHT);
 // depende del tamaño y no del peso, así que un único tamaño es lo que
 // garantiza que todas las columnas midan exactamente lo mismo
 const NUM_SIZE = 13;
+// empujoncito a la derecha: espacio fijo al inicio de CADA fila (antes de la
+// columna del lunes), para compensar a ojo si la grilla se ve corrida hacia
+// la izquierda. Subir/bajar este número es la perilla para ajustar el
+// centrado fino; 0 lo desactiva.
+const LEFT_NUDGE = 1;
 
 // ================= AUTH =================
 function apiKey() {
@@ -161,6 +166,9 @@ try {
     row.addSpacer(); // empuja desde la izquierda
     const cells = row.addStack();
     cells.layoutHorizontally();
+    // espacio fijo antes de la columna del lunes, igual en TODAS las filas
+    // (encabezado incluido) para no romper la alineación entre columnas
+    if (LEFT_NUDGE > 0) cells.addSpacer(LEFT_NUDGE);
     row.addSpacer(); // empuja desde la derecha → las 7 celdas quedan centradas
     return cells;
   };
