@@ -19,7 +19,7 @@ Repo nuevo: `https://github.com/calepes/entrenamiento-widgets` (público, patró
 
 ## Pendiente — Task 15 (parte manual, solo Cal puede hacerla en su iPhone)
 
-Los 3 loaders ya están desplegados directo en la carpeta de iCloud de Scriptable (2026-07-29), byte-idénticos a los del repo — no hace falta crearlos a mano en la app, solo esperar a que sincronicen (o forzar sync abriendo Scriptable) y usarlos:
+Los 3 loaders ya están desplegados directo en la carpeta de iCloud de Scriptable (2026-07-29, actualizados de nuevo el mismo día con el fix de caché de abajo) — no hace falta crearlos a mano en la app, solo esperar a que sincronicen (o forzar sync abriendo Scriptable) y usarlos:
 - `Mes Combinado.js`
 - `Año Fuerza.js`
 - `Año Pádel · Tenis.js`
@@ -72,6 +72,14 @@ Historia completa de esta cacería, porque cada paso intermedio parecía razonab
 3. **Conclusión (commit `82a9ca3`):** la hipótesis del paso 2 era incompleta — no es que "hay que anidar", es que el comportamiento de expansión de `addSpacer()` sin longitud es ambiguo/no confiable en Scriptable apenas se agrega profundidad o se usa en el eje vertical de la raíz, y ningún script real de Cal (`Dólar Binance.js`, `Claude Max.js`) depende de esto — todos usan `setPadding()`/`addSpacer(n)` con valores numéricos fijos. Se abandonó el enfoque de spacers flexibles por completo para el centrado vertical: en su lugar, `rows` (4/5/6 filas según el mes) se calcula ANTES de construir la UI —no depende del fetch de datos— y se usa para calcular un `setPadding()` vertical simétrico contra un tamaño de canvas asumido (`ASSUMED_CANVAS = 158`, típico de iPhones modernos de 390pt de ancho; sin forma de leer el tamaño real desde Scriptable). El cálculo hace `Math.max(0, ...)` así que en el peor caso (dispositivo real más chico que el asumido) el padding cae a la base (6pt) — nunca se corta contenido, como mucho queda un poco menos centrado. El centrado horizontal SÍ sigue usando `addSpacer()` flexible, pero solo porque `outerRow` volvió a ser hijo DIRECTO de `widget` (un solo nivel, sin `outerColumn` de por medio).
 
 **Regla general para cualquier widget nuevo:** no usar `addSpacer()` flexible (sin longitud) para centrar contenido dentro del widget completo — ni en la raíz del `ListWidget` ni anidado más de un nivel. El único uso de `addSpacer()` flexible confirmado funcionando es exactamente UN nivel de anidamiento (un `WidgetStack` que es hijo directo de `widget`), igual que `row.addSpacer()` en `Dólar Binance.js`. Para cualquier otra cosa (sobre todo centrado vertical, donde ni siquiera un nivel funcionó de forma confiable en pruebas reales), calcular el padding con matemática simple sobre el contenido conocido, como hace `mes-combinado` ahora.
+
+## Gotcha 2026-07-29: caché de `raw.githubusercontent.com` — el dispositivo, no el CDN
+
+Cal reportó "aun lo veo viejo" después de varios pushes seguidos con cambios visuales. `curl -I` a la URL raw mostró `cache-control: max-age=300` y `source-age: 0` (el CDN de GitHub ya servía la versión más nueva en el momento de probar) — la causa no era el CDN, era que el propio dispositivo (URLSession de iOS, usado por `Request` de Scriptable) puede reusar una respuesta guardada localmente hasta 5 minutos sin volver a pedirle nada al servidor, porque los 3 loaders pedían siempre la MISMA URL exacta.
+
+**Fix (commit `6af1f22`, repo + las 3 copias en iCloud):** agregar un query param que cambia en cada corrida a la URL que arma cada loader — `RAW_URL = ...?_=${Date.now()}` — así el request nunca matchea una entrada de caché anterior, sin importar los headers `Cache-Control` que mande GitHub.
+
+**Importante — a diferencia de los cambios al CÓDIGO del widget (`mesCombinado.js`, `anualFuerza.js`, etc.), que solo necesitan push a GitHub porque el loader los baja solo:** un cambio al LOADER en sí (`loader.js`) SÍ hay que copiarlo a mano a la carpeta de iCloud además de pushear el repo — el loader es lo que se ejecuta directo en el dispositivo, nada lo actualiza automáticamente.
 
 ## Decisiones de diseño tomadas en el camino (por si hace falta el porqué)
 
