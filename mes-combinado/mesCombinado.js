@@ -106,14 +106,9 @@ function dateStrFor(day) {
 const totalCells = firstWeekday + daysInMonth;
 const rows = Math.ceil(totalCells / 7);
 
-// padding calculado para centrar la grilla dentro del widget: nada de
-// spacers flexibles (ver HANDOFF.md — no son confiables en Scriptable
-// para esto, ni en la raíz del ListWidget ni anidados), directamente se
-// calcula cuánto aire sobra a cada lado y se reparte como padding fijo —
-// mismo mecanismo que ya usan todos los widgets probados de Cal
-// (setPadding/addSpacer con números fijos, nunca flexibles)
+// padding vertical calculado: matemática exacta, no estimación de fuente
+// (ver comentario de CELL_HEIGHT arriba)
 const gridWidth = 7 * COL_WIDTH;
-const hPad = Math.max(MIN_PAD, (CANVAS - gridWidth) / 2);
 // filas totales de la grilla = encabezado + una por semana; gaps = una
 // menos que filas totales (entre cada par de filas consecutivas)
 const totalCellRows = rows + 1;
@@ -124,17 +119,37 @@ const vPad = Math.max(MIN_PAD, (CANVAS - gridHeight) / 2);
 // sin título: todo el widget es la grilla (pedido de Cal — el mes ya se
 // infiere por ser "el mes actual", no hace falta repetirlo como texto)
 const widget = new ListWidget();
-widget.setPadding(vPad, hPad, vPad, hPad);
+// padding horizontal mínimo — el centrado horizontal real lo hace outerRow
+// (spacers flexibles) más abajo, no este padding
+widget.setPadding(vPad, MIN_PAD, vPad, MIN_PAD);
 
 try {
   const { strengthDays, racquetDays } = await loadMonthData();
   const strengthSet = new Set(strengthDays.filter(d => isCurrentMonth(d.date)).map(d => d.date));
   const racquetSet = new Set(racquetDays.filter(d => isCurrentMonth(d.date)).map(d => d.date));
 
+  // outerRow (hijo DIRECTO de widget) + spacers flexibles a los lados: ESTE
+  // mecanismo de centrado horizontal ya está probado (funcionó en versiones
+  // anteriores) — se había sacado al confirmar el tamaño exacto del canvas
+  // y reemplazado por padding calculado, pero un bug real y documentado de
+  // Scriptable (foro talk.automators.fm: WidgetStacks horizontales con
+  // ancho "auto" pueden desalinearse entre sí — Scriptable usa el más ancho
+  // como referencia) hacía que las filas no quedaran realmente parejas. Acá
+  // se restaura outerRow Y además se le da a CADA fila (encabezado y cada
+  // semana) un ancho explícito (gridWidth), no "auto", para blindar contra
+  // ese bug de raíz.
+  const outerRow = widget.addStack();
+  outerRow.layoutHorizontally();
+  outerRow.addSpacer();
+  const grid = outerRow.addStack();
+  grid.layoutVertically();
+  outerRow.addSpacer();
+
   // encabezado de días de la semana (L M X J V S D — mismo ancho fijo que las columnas de días,
   // mismo tamaño de fuente que los números del mes para que no se vea desproporcionado)
-  const headerRow = widget.addStack();
+  const headerRow = grid.addStack();
   headerRow.layoutHorizontally();
+  headerRow.size = new Size(gridWidth, CELL_HEIGHT); // ancho explícito, no auto
   for (const label of WEEKDAY_LABELS) {
     const cell = headerRow.addStack();
     cell.size = CELL_SIZE; // mismo tamaño que las celdas de número — misma fila de grilla
@@ -148,11 +163,12 @@ try {
     t.textColor = WEEKDAY_COLOR;
   }
 
-  widget.addSpacer(ROW_GAP);
+  grid.addSpacer(ROW_GAP);
 
   for (let r = 0; r < rows; r++) {
-    const rowStack = widget.addStack();
+    const rowStack = grid.addStack();
     rowStack.layoutHorizontally();
+    rowStack.size = new Size(gridWidth, CELL_HEIGHT); // mismo ancho explícito que headerRow
 
     for (let c = 0; c < 7; c++) {
       const cellIndex = r * 7 + c;
@@ -201,7 +217,7 @@ try {
         dot.backgroundColor = DOT_COLOR;
       }
     }
-    if (r < rows - 1) widget.addSpacer(ROW_GAP);
+    if (r < rows - 1) grid.addSpacer(ROW_GAP);
   }
 } catch (e) {
   const msg = widget.addText(String(e.message || e));
