@@ -26,16 +26,16 @@ const COL_WIDTH = 20;
 // (proyecto de un solo dispositivo, no una app distribuida)
 const CANVAS = 158;
 
-// medidas usadas para calcular el padding (ver más abajo) — deben
-// coincidir con lo que realmente se renderiza en la sección WIDGET UI.
-// Ajustadas 2026-07-29 (v2) contra una referencia visual de Cal — números
-// más grandes y filas más separadas para que la grilla realmente llene el
-// widget, en vez de dejar tanto margen muerto arriba/abajo.
-const HEADER_HEIGHT = 13;
-const HEADER_GAP = 5;
-const ROW_HEIGHT = 17; // número bold 14pt + spacing 0.5 + puntito 3
-const ROW_GAP = 5;
-const MIN_PAD = 6;
+// grilla real (v3, 2026-07-29): TODAS las celdas (encabezado y números)
+// usan el mismo tamaño explícito CELL_SIZE — antes la altura de cada celda
+// de número era "0" (auto), así que variaba según si esa celda tenía
+// puntito o no, y la separación entre filas no quedaba pareja. Con tamaño
+// fijo, el cálculo de altura total deja de ser una estimación de fuente
+// (que dependía de metrics que Scriptable no expone) y pasa a ser exacto.
+const CELL_HEIGHT = 18;
+const ROW_GAP = 4;
+const MIN_PAD = 4;
+const CELL_SIZE = new Size(COL_WIDTH, CELL_HEIGHT);
 
 // ================= AUTH =================
 function apiKey() {
@@ -114,7 +114,10 @@ const rows = Math.ceil(totalCells / 7);
 // (setPadding/addSpacer con números fijos, nunca flexibles)
 const gridWidth = 7 * COL_WIDTH;
 const hPad = Math.max(MIN_PAD, (CANVAS - gridWidth) / 2);
-const gridHeight = HEADER_HEIGHT + HEADER_GAP + rows * ROW_HEIGHT + (rows - 1) * ROW_GAP;
+// filas totales de la grilla = encabezado + una por semana; gaps = una
+// menos que filas totales (entre cada par de filas consecutivas)
+const totalCellRows = rows + 1;
+const gridHeight = totalCellRows * CELL_HEIGHT + (totalCellRows - 1) * ROW_GAP;
 const vPad = Math.max(MIN_PAD, (CANVAS - gridHeight) / 2);
 
 // ================= WIDGET UI =================
@@ -134,7 +137,7 @@ try {
   headerRow.layoutHorizontally();
   for (const label of WEEKDAY_LABELS) {
     const cell = headerRow.addStack();
-    cell.size = new Size(COL_WIDTH, 15);
+    cell.size = CELL_SIZE; // mismo tamaño que las celdas de número — misma fila de grilla
     // vertical, no horizontal: centerAlignContent() solo centra en el eje
     // transversal — con layoutHorizontally() el ancho (que es lo que hay que
     // centrar acá) es el eje principal y queda sin efecto (bug encontrado en review)
@@ -145,7 +148,7 @@ try {
     t.textColor = WEEKDAY_COLOR;
   }
 
-  widget.addSpacer(HEADER_GAP);
+  widget.addSpacer(ROW_GAP);
 
   for (let r = 0; r < rows; r++) {
     const rowStack = widget.addStack();
@@ -155,10 +158,11 @@ try {
       const cellIndex = r * 7 + c;
       const dayNum = cellIndex - firstWeekday + 1;
 
-      // ancho fijo por columna — así los números quedan alineados en grilla real
-      // (antes cada celda se angostaba/ensanchaba según el contenido: "3" vs "31")
+      // tamaño fijo (mismo CELL_SIZE que el encabezado) — antes la altura
+      // era "0" (auto), variaba según si la celda tenía puntito o no, y la
+      // separación entre filas no quedaba pareja (encontrado en captura real)
       const cellStack = rowStack.addStack();
-      cellStack.size = new Size(COL_WIDTH, 0);
+      cellStack.size = CELL_SIZE;
       cellStack.layoutVertically();
       cellStack.centerAlignContent();
       cellStack.spacing = 0.5;
