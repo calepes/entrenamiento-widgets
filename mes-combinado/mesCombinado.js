@@ -94,6 +94,11 @@ try {
   const strengthSet = new Set(strengthDays.filter(d => isCurrentMonth(d.date)).map(d => d.date));
   const racquetSet = new Set(racquetDays.filter(d => isCurrentMonth(d.date)).map(d => d.date));
 
+  // spacer flexible arriba — mismo mecanismo que el de abajo, pero en el eje
+  // vertical del widget: centra la grilla completa cuando un mes de 4-5
+  // filas no llena las 6 filas de altura máxima reservada
+  widget.addSpacer();
+
   // fila exterior con spacers flexibles a los lados — ListWidget no centra
   // sus stacks hijos por default (quedaban pegados a la izquierda), este es
   // el patrón oficial de Scriptable para centrar un stack de ancho fijo
@@ -173,6 +178,8 @@ try {
     }
     if (r < rows - 1) grid.addSpacer(2);
   }
+
+  widget.addSpacer();
 } catch (e) {
   const msg = widget.addText(String(e.message || e));
   msg.font = Font.systemFont(11);
