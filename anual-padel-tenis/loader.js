@@ -23,4 +23,8 @@ if (req.response.statusCode !== 200) {
   return;
 }
 
-eval(code);
+// code puede tener `await` a nivel top-level (patrón usado en los 3 widgets).
+// eval() nunca permite top-level await en el string evaluado (falla en
+// cualquier motor JS, no es específico de Scriptable) — se envuelve en una
+// IIFE async para que el await ya no sea "top-level" para el parser.
+await eval(`(async () => {\n${code}\n})()`);
