@@ -15,6 +15,8 @@
 - [x] `mes-combinado/` — calendario del mes, punto naranja/verde por tipo (v1)
 - [x] `mes-combinado/` rediseñado (2026-07-29) — grilla realmente alineada (columnas con ancho fijo), encabezado L M X J V S D, números grandes coloreados directo por tipo, puntito chico solo para "hiciste los dos"
 - [x] `mes-combinado/` sin título (2026-07-29) — se sacó el texto del mes, padding más chico y la grilla (encabezado, números, filas) creció para ocupar todo el widget
+- [x] `mes-combinado/` **diseño APROBADO por Cal (2026-07-29)** — causa raíz del descuadre encontrada: `centerAlignContent()` no centra en horizontal en un stack vertical. Fix: todas las celdas renderizan texto del mismo ancho (FIGURE SPACE U+2007 + monoespaciada + un solo tamaño de fuente). Ver HANDOFF.md.
+- [x] `mes-combinado/` centrado real confirmado en pantalla (2026-07-29) — canvas del widget Small confirmado por Cal (iPhone 15/16 no-Pro, 158×158pt), padding horizontal Y vertical calculados con esa medida exacta en vez de spacers flexibles (que resultaron no confiables en Scriptable, ver HANDOFF.md). Encabezado L M X J V S D al mismo tamaño que los números. Captura final: centrado parejo en los cuatro lados.
 - [x] `anual-fuerza/` — heatmap semanal (52 semanas, 8×7), naranja, indicador de caché
 - [x] `anual-padel-tenis/` — igual, verde
 - [x] Repo `entrenamiento-widgets` creado, pusheado a GitHub (público)
@@ -26,10 +28,11 @@
 ### Setup manual (solo Cal, en el iPhone)
 - [ ] Guardar `HEALTH_API_KEY` en Keychain del dispositivo (ver HANDOFF.md)
 - [ ] Agregar los 3 widgets Small al home screen (ya no hace falta instalarlos a mano, ver arriba)
+- [ ] **`Mes Combinado.js` en iCloud está corriendo como copia directa, no como loader** (cambio temporal 2026-07-29 para iterar el diseño más rápido, sin depender de la caché de `raw.githubusercontent.com`). Ahora que el centrado quedó confirmado, falta volver a poner el loader ahí (mismo patrón que `Año Fuerza.js`/`Año Pádel · Tenis.js`, que nunca se tocaron) para que vuelva a auto-actualizarse desde GitHub.
 
 ### Verificación (Task 16 del plan)
-- [ ] Confirmar los 3 widgets contra el mockup aprobado (números/puntos no se salen, heatmap legible)
-- [ ] Confirmar el rediseño de `mes-combinado` en pantalla real: encabezado L M X J V S D alineado con la grilla, y que un mes de 6 filas no se corte (presupuesto vertical quedó ajustado tras agregar el encabezado y de nuevo tras sacar el título — ver HANDOFF.md para el cálculo)
+- [ ] Confirmar los 3 widgets contra el mockup aprobado (números/puntos no se salen, heatmap legible) — `mes-combinado` ya confirmado (ver arriba), faltan `anual-fuerza` y `anual-padel-tenis`
+- [x] Confirmar el rediseño de `mes-combinado` en pantalla real — centrado horizontal y vertical confirmado por Cal (2026-07-29). Falta confirmar específicamente un mes de 6 filas (julio 2026, usado para todas las pruebas, tiene 5) — presupuesto: `vPad = max(6, (158 - gridHeight)/2)` nunca corta contenido gracias al `Math.max`, pero vale la pena mirar cómo se ve un mes de 6 filas cuando llegue uno.
 - [ ] Probar dark mode real del dispositivo (ojo: `DrawContext` con `Color.dynamic` queda "horneado" al modo del momento de ejecución — limitación conocida, no bug)
 - [ ] Probar sin red (modo avión) — confirmar fallback a caché, nunca en blanco
 - [ ] Sanity check: comparar un día conocido contra lo que muestra Apple Salud directamente

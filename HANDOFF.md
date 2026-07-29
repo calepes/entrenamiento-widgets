@@ -83,6 +83,23 @@ Después de fijar el canvas exacto (158×158pt, confirmado por Cal — no era el
 
 **Regla general, sumada a la de arriba:** en cualquier layout con múltiples `WidgetStack` horizontales "hermanos" que deberían medir lo mismo (filas de una grilla, columnas de una tabla), no confiar en que el ancho "auto" calculado a partir de celdas hijas idénticas dé el mismo resultado en todas — setear `.size` explícito en el STACK CONTENEDOR de cada fila, no solo en sus celdas.
 
+## RESUELTO 2026-07-29: `centerAlignContent()` no centra en horizontal — causa raíz de todo el descuadre
+
+**Este era el bug de fondo.** Después de todo lo anterior, Cal seguía viendo la grilla corrida a la izquierda. El dato que lo destapó: describió que los números de UN dígito y las letras del encabezado se veían corridos, mientras que los de dos dígitos ocupaban bien su celda. Si `centerAlignContent()` estuviera centrando en horizontal, eso no podría pasar — todas las celdas tienen el mismo ancho fijo y todas llamaban a esa función.
+
+**Conclusión:** en un `WidgetStack` con `layoutVertically()`, `centerAlignContent()` NO centra el eje horizontal (aparentemente centra el principal, o sea el vertical). El comentario que había en el código diciendo lo contrario ("centra el eje transversal") era una suposición equivocada arrastrada desde la primera versión, y explica por qué ningún ajuste de padding/spacers lo arreglaba: el contenido nunca estuvo centrado dentro de su celda.
+
+**Fix (commits `fbcf8d3` … final):** dejar de depender de la alineación. Ahora TODAS las celdas renderizan un texto de exactamente 2 caracteres — los días 1-9 y las letras del encabezado llevan adelante un **FIGURE SPACE (U+2007)**, que en fuente monoespaciada mide exactamente lo mismo que un dígito y no se colapsa como el espacio normal:
+
+```javascript
+const FIGURE_SPACE = " ";
+const pad2 = (s) => (String(s).length >= 2 ? String(s) : FIGURE_SPACE + s);
+```
+
+Si todos los textos miden lo mismo, da igual cómo los alinee Scriptable: las columnas coinciden. Confirmado por Cal en pantalla real ("¡Por fin!").
+
+**Condición que acompaña:** un solo tamaño de fuente (`NUM_SIZE`) para marcados y no marcados — en monoespaciada el ancho de avance depende del tamaño, no del peso, así que bold y regular al mismo tamaño ocupan igual, pero 14 vs 13 no.
+
 ## Gotcha 2026-07-29: caché de `raw.githubusercontent.com` — el dispositivo, no el CDN
 
 Cal reportó "aun lo veo viejo" después de varios pushes seguidos con cambios visuales. `curl -I` a la URL raw mostró `cache-control: max-age=300` y `source-age: 0` (el CDN de GitHub ya servía la versión más nueva en el momento de probar) — la causa no era el CDN, era que el propio dispositivo (URLSession de iOS, usado por `Request` de Scriptable) puede reusar una respuesta guardada localmente hasta 5 minutos sin volver a pedirle nada al servidor, porque los 3 loaders pedían siempre la MISMA URL exacta.
