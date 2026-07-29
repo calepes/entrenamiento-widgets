@@ -191,9 +191,17 @@ function draw(weekCounts, isCache) {
     ctx.fillRect(new Rect(x, y, cellW, cellH));
 
     if (isFirstOfMonth) {
-      ctx.setFont(Font.mediumSystemFont(5 * scale));
+      // inicial del mes a escala de la celda (antes era fija y diminuta,
+      // 5pt, y quedaba pegada a la esquina): se dimensiona como fracción
+      // del alto de celda y se centra en ella con drawTextInRect
+      const fontSize = cellH * 0.66;
+      ctx.setFont(Font.boldSystemFont(fontSize));
       ctx.setTextColor(MONTH_MARK_COLOR);
-      ctx.drawText(MONTH_INITIALS[mIdx], new Point(x + 1 * scale, y + 0.5 * scale));
+      ctx.setTextAlignedCenter();
+      // el rect se desplaza para que la línea de texto quede centrada
+      // verticalmente dentro de la celda (drawTextInRect alinea arriba)
+      const textY = y + (cellH - fontSize * 1.2) / 2;
+      ctx.drawTextInRect(MONTH_INITIALS[mIdx], new Rect(x, textY, cellW, cellH));
     }
   }
 
