@@ -13,6 +13,7 @@ const CACHE_FILE = "mes-combinado-cache.json";
 
 const ACCENT_STRENGTH = Color.dynamic(new Color("#F97316"), new Color("#FB8A3C"));
 const ACCENT_RACQUET  = Color.dynamic(new Color("#22C55E"), new Color("#34D399"));
+const DOT_COLOR = Color.dynamic(new Color("#15803D"), new Color("#22C55E")); // puntito "ambos" — más oscuro que ACCENT_RACQUET para que no se pierda de chico
 const NUM_COLOR = Color.dynamic(new Color("#3C3C43", 0.45), new Color("#EBEBF5", 0.45));
 const WEEKDAY_COLOR = Color.dynamic(new Color("#3C3C43", 0.6), new Color("#EBEBF5", 0.6));
 
@@ -174,12 +175,17 @@ try {
 
       // el centrado real lo hace cellStack.centerAlignContent() (arriba) —
       // WidgetText.centerAlignText() no tiene efecto dentro de un stack
+      // fuente tabular (monospaced) — con fuente proporcional normal, "1" es
+      // más angosto que "31", así que el aire visible entre columnas variaba
+      // según cuántos dígitos tenía cada número aunque el ancho de columna
+      // (COL_WIDTH) sea fijo; con dígitos de ancho parejo la separación se ve
+      // igual en toda la grilla
       const numLabel = cellStack.addText(String(dayNum));
       if (hasStrength || hasRacquet) {
-        numLabel.font = Font.boldSystemFont(13);
+        numLabel.font = Font.boldMonospacedSystemFont(13);
         numLabel.textColor = hasStrength ? ACCENT_STRENGTH : ACCENT_RACQUET;
       } else {
-        numLabel.font = Font.systemFont(12);
+        numLabel.font = Font.regularMonospacedSystemFont(12);
         numLabel.textColor = NUM_COLOR;
       }
 
@@ -189,7 +195,7 @@ try {
       dot.size = new Size(3, 3);
       if (hasBoth) {
         dot.cornerRadius = 1.5;
-        dot.backgroundColor = ACCENT_RACQUET;
+        dot.backgroundColor = DOT_COLOR;
       }
     }
     if (r < rows - 1) widget.addSpacer(ROW_GAP);
