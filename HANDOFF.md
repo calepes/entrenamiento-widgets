@@ -19,10 +19,14 @@ Repo nuevo: `https://github.com/calepes/entrenamiento-widgets` (público, patró
 
 ## Pendiente — Task 15 (parte manual, solo Cal puede hacerla en su iPhone)
 
-Los 3 loaders ya están desplegados directo en la carpeta de iCloud de Scriptable (2026-07-29, actualizados de nuevo el mismo día con el fix de caché de abajo) — no hace falta crearlos a mano en la app, solo esperar a que sincronicen (o forzar sync abriendo Scriptable) y usarlos:
-- `Mes Combinado.js`
-- `Año Fuerza.js`
-- `Año Padel.js`
+**Flujo de deploy (decisión de Cal, 2026-07-29): NO se usa el patrón loader.** Los widgets se escriben directo en la carpeta de Scriptable en iCloud desde Claude Code:
+
+```bash
+python3 scripts/deploy-icloud.py          # sincroniza los 3
+python3 scripts/deploy-icloud.py --check  # solo informa si hay algo desactualizado
+```
+
+El repo es la fuente de verdad; el script copia cada widget a su nombre en Scriptable (`Mes Combinado.js`, `Año Fuerza.js`, `Año Padel.js`) conservando el ícono que cada uno ya tenga en la app. Es idempotente. Se abandonó el patrón loader+eval porque la caché de `raw.githubusercontent.com` (max-age=300) hacía correr código viejo hasta 5 min tras un push, y porque `eval()` no admite top-level `await` — una capa extra que ya rompió una vez en producción. Los widgets igual funcionan sin red gracias a su caché local, así que no se perdía nada.
 
 1. **Guardar `HEALTH_API_KEY` en el Keychain del dispositivo** (una sola vez, script ad-hoc en Scriptable, correr y borrar):
    ```javascript

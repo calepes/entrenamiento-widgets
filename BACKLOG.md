@@ -21,7 +21,7 @@
 - [x] `anual-fuerza/` — heatmap semanal (52 semanas, 8×7), naranja, indicador de caché
 - [x] `anual-padel/` — igual, verde
 - [x] Repo `entrenamiento-widgets` creado, pusheado a GitHub (público)
-- [x] Los 3 loaders deployados directo en la carpeta iCloud de Scriptable (2026-07-29) — `Mes Combinado.js`, `Año Fuerza.js`, `Año Padel.js`
+- [x] **Patrón loader ABANDONADO (2026-07-29, decisión de Cal)** — los 3 widgets se escriben directo en iCloud desde Claude Code con `scripts/deploy-icloud.py`. Elimina de raíz los dos peores gotchas de la sesión (caché de `raw.githubusercontent.com` y `eval()` sin top-level await). Los `loader.js` se borraron del repo (quedan en el historial de git).
 - [x] Fix del bug real detectado on-device: `eval()` no soporta top-level `await` en ningún motor JS — los 3 loaders (repo + iCloud) envuelven ahora el código en una IIFE async antes de `eval`
 
 ## Pendiente
@@ -29,7 +29,6 @@
 ### Setup manual (solo Cal, en el iPhone)
 - [ ] Guardar `HEALTH_API_KEY` en Keychain del dispositivo (ver HANDOFF.md)
 - [ ] Agregar los 3 widgets Small al home screen (ya no hace falta instalarlos a mano, ver arriba)
-- [ ] **`Mes Combinado.js` en iCloud está corriendo como copia directa, no como loader** (cambio temporal 2026-07-29 para iterar el diseño más rápido, sin depender de la caché de `raw.githubusercontent.com`). Ahora que el centrado quedó confirmado, falta volver a poner el loader ahí (mismo patrón que `Año Fuerza.js`/`Año Padel.js`, que nunca se tocaron) para que vuelva a auto-actualizarse desde GitHub.
 
 ### Verificación (Task 16 del plan)
 - [ ] Confirmar los 3 widgets contra el mockup aprobado (números/puntos no se salen, heatmap legible) — `mes-combinado` ya confirmado (ver arriba), faltan `anual-fuerza` y `anual-padel`
@@ -43,4 +42,4 @@
 - [ ] **Tool `getWorkoutHeatmap` en el MCP de Jano** — hoy Jano solo puede consultar `/workouts/summary` conversacionalmente, no `/workouts/heatmap`. Si en algún momento Cal quiere preguntarle a Jano "cómo viene mi heatmap de fuerza este año", hace falta agregar esa tool (mismo patrón `fetchHealth` + `READ_ONLY` ya establecido en `mcp-servers/servers/health/src/index.ts`).
 - [ ] **Endurecer el caché de `mes-combinado` contra cruce de mes** — si el fetch falla justo en el cambio de mes, la caché vieja (mes anterior) se filtra a "sin actividad este mes" en vez de mostrar error/aviso de caché — edge case angosto, detectado en code review, no arreglado (aceptado para v1).
 - [ ] Evaluar si vale la pena agregar un indicador "(cache)" también a `mes-combinado` (hoy solo lo tienen los 2 widgets anuales — el mensual no tiene espacio en el layout aprobado).
-- [ ] **Aplicar el mismo fix de `eval()`/top-level-await a los loaders de `tipo-de-cambio-Bolivia`** — mismo patrón exacto (`eval(code)` sin envolver), probablemente roto de la misma forma si alguna vez se usan en vez de las copias directas (`Tc Referencial.js`, `Dólar Binance.js`) que hoy viven sin loader en la carpeta de Scriptable.
+- [ ] **`tipo-de-cambio-Bolivia` todavía tiene loaders con el bug de `eval()`/top-level-await** — sin usar hoy (esos widgets corren como copias directas). Si alguna vez se quieren usar, o bien aplicar la IIFE async, o mejor: migrarlos al mismo flujo de deploy directo que se adoptó acá (`scripts/deploy-icloud.py` como modelo).
