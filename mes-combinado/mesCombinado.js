@@ -18,13 +18,13 @@ const NUM_COLOR = Color.dynamic(new Color("#3C3C43", 0.45), new Color("#EBEBF5",
 const WEEKDAY_COLOR = Color.dynamic(new Color("#3C3C43", 0.6), new Color("#EBEBF5", 0.6));
 
 const WEEKDAY_LABELS = ["L", "M", "X", "J", "V", "S", "D"];
-// ancho de columna: con dígitos monoespaciados de 14pt bold, un número de
-// dos dígitos mide ~17pt — con COL_WIDTH 20 quedaba casi tocando el borde
-// de su celda mientras que uno de un dígito quedaba holgado, así que la
-// separación ENTRE dígitos vecinos se veía distinta según el caso aunque
-// los centros de columna sí fueran equidistantes. Con 21 hay margen
-// parejo a los dos lados en ambos casos (7 × 21 = 147pt, entra en los
-// 150pt disponibles del canvas de 158 menos el padding mínimo).
+// ancho de columna: con dígitos monoespaciados (ver NUM_SIZE), un número
+// de dos dígitos quedaba casi tocando el borde de su celda con COL_WIDTH
+// 20, mientras que uno de un dígito quedaba holgado — así la separación
+// ENTRE dígitos vecinos se veía distinta según el caso aunque los centros
+// de columna sí fueran equidistantes. Con 21 hay margen parejo a los dos
+// lados en ambos casos (7 × 21 = 147pt, entra en los 150pt disponibles
+// del canvas de 158 menos el padding mínimo).
 const COL_WIDTH = 21;
 
 // tamaño real confirmado del widget Small en el iPhone de Cal (15/16 no-Pro,
@@ -47,7 +47,7 @@ const CELL_SIZE = new Size(COL_WIDTH, CELL_HEIGHT);
 // comentario largo donde se usa: en monoespaciada el ancho de avance
 // depende del tamaño y no del peso, así que un único tamaño es lo que
 // garantiza que todas las columnas midan exactamente lo mismo
-const NUM_SIZE = 14;
+const NUM_SIZE = 13;
 
 // ================= AUTH =================
 function apiKey() {
@@ -220,7 +220,7 @@ try {
       //   2. MISMO tamaño de fuente para marcados y no marcados (NUM_SIZE) —
       //      en monoespaciada el ancho de avance depende del tamaño, no del
       //      peso, así que bold y regular al mismo tamaño ocupan exactamente
-      //      lo mismo; con tamaños distintos (antes 14 vs 13) las columnas
+      //      lo mismo; cuando eran tamaños distintos (14 vs 13) las columnas
       //      quedaban geométricamente distintas entre sí.
       const numLabel = cellStack.addText(String(dayNum));
       if (hasStrength || hasRacquet) {
@@ -234,9 +234,9 @@ try {
       // puntito solo para el caso "hiciste los dos" — reservado en todas las
       // celdas con día real para que la altura de fila no varíe entre celdas
       const dot = cellStack.addStack();
-      dot.size = new Size(3, 3);
+      dot.size = new Size(4, 4);
       if (hasBoth) {
-        dot.cornerRadius = 1.5;
+        dot.cornerRadius = 2;
         dot.backgroundColor = DOT_COLOR;
       }
     }
