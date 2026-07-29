@@ -18,7 +18,14 @@ const NUM_COLOR = Color.dynamic(new Color("#3C3C43", 0.45), new Color("#EBEBF5",
 const WEEKDAY_COLOR = Color.dynamic(new Color("#3C3C43", 0.6), new Color("#EBEBF5", 0.6));
 
 const WEEKDAY_LABELS = ["L", "M", "X", "J", "V", "S", "D"];
-const COL_WIDTH = 20;
+// ancho de columna: con dígitos monoespaciados de 14pt bold, un número de
+// dos dígitos mide ~17pt — con COL_WIDTH 20 quedaba casi tocando el borde
+// de su celda mientras que uno de un dígito quedaba holgado, así que la
+// separación ENTRE dígitos vecinos se veía distinta según el caso aunque
+// los centros de columna sí fueran equidistantes. Con 21 hay margen
+// parejo a los dos lados en ambos casos (7 × 21 = 147pt, entra en los
+// 150pt disponibles del canvas de 158 menos el padding mínimo).
+const COL_WIDTH = 21;
 
 // tamaño real confirmado del widget Small en el iPhone de Cal (15/16 no-Pro,
 // pantalla de 390pt de ancho) — 158×158pt, tabla oficial de Apple. No hay
@@ -36,6 +43,11 @@ const CELL_HEIGHT = 18;
 const ROW_GAP = 4;
 const MIN_PAD = 4;
 const CELL_SIZE = new Size(COL_WIDTH, CELL_HEIGHT);
+// un solo tamaño para TODOS los números (marcados y no marcados) — ver el
+// comentario largo donde se usa: en monoespaciada el ancho de avance
+// depende del tamaño y no del peso, así que un único tamaño es lo que
+// garantiza que todas las columnas midan exactamente lo mismo
+const NUM_SIZE = 14;
 
 // ================= AUTH =================
 function apiKey() {
@@ -165,7 +177,9 @@ try {
     cell.layoutVertically();
     cell.centerAlignContent();
     const t = cell.addText(label);
-    t.font = Font.semiboldSystemFont(13);
+    // monoespaciada y del mismo tamaño que los números: así la letra de cada
+    // día cae exactamente sobre el centro de su columna, no aproximadamente
+    t.font = Font.semiboldMonospacedSystemFont(NUM_SIZE);
     t.textColor = WEEKDAY_COLOR;
   }
 
@@ -198,17 +212,22 @@ try {
 
       // el centrado real lo hace cellStack.centerAlignContent() (arriba) —
       // WidgetText.centerAlignText() no tiene efecto dentro de un stack
-      // fuente tabular (monospaced) — con fuente proporcional normal, "1" es
-      // más angosto que "31", así que el aire visible entre columnas variaba
-      // según cuántos dígitos tenía cada número aunque el ancho de columna
-      // (COL_WIDTH) sea fijo; con dígitos de ancho parejo la separación se ve
-      // igual en toda la grilla
+      //
+      // Dos condiciones para que la separación se vea IGUAL en toda la grilla,
+      // sin importar si el día es de uno o dos dígitos ni si está marcado:
+      //   1. fuente monoespaciada → cada dígito ocupa el mismo ancho (con una
+      //      proporcional, "1" es más angosto que "3" y las columnas bailan);
+      //   2. MISMO tamaño de fuente para marcados y no marcados (NUM_SIZE) —
+      //      en monoespaciada el ancho de avance depende del tamaño, no del
+      //      peso, así que bold y regular al mismo tamaño ocupan exactamente
+      //      lo mismo; con tamaños distintos (antes 14 vs 13) las columnas
+      //      quedaban geométricamente distintas entre sí.
       const numLabel = cellStack.addText(String(dayNum));
       if (hasStrength || hasRacquet) {
-        numLabel.font = Font.boldMonospacedSystemFont(14);
+        numLabel.font = Font.boldMonospacedSystemFont(NUM_SIZE);
         numLabel.textColor = hasStrength ? ACCENT_STRENGTH : ACCENT_RACQUET;
       } else {
-        numLabel.font = Font.regularMonospacedSystemFont(13);
+        numLabel.font = Font.regularMonospacedSystemFont(NUM_SIZE);
         numLabel.textColor = NUM_COLOR;
       }
 
