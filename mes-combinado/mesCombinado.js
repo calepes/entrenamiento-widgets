@@ -3,8 +3,8 @@
 // icon-color: deep-orange; icon-glyph: calendar-alt;
 
 /*************************************************
- * MES — COMBINADO · calendario del mes con punto por tipo
- * naranja = fuerza · verde = pádel/tenis (ambos = los dos puntos)
+ * MES — COMBINADO · calendario del mes, número coloreado por tipo
+ * naranja = fuerza · verde = pádel/tenis (ambos = número + puntito extra)
  * Scriptable · Widget Small · Light/Dark
  *************************************************/
 
@@ -13,7 +13,11 @@ const CACHE_FILE = "mes-combinado-cache.json";
 
 const ACCENT_STRENGTH = Color.dynamic(new Color("#F97316"), new Color("#FB8A3C"));
 const ACCENT_RACQUET  = Color.dynamic(new Color("#22C55E"), new Color("#34D399"));
-const NUM_COLOR = Color.dynamic(new Color("#3C3C43", 0.6), new Color("#EBEBF5", 0.6));
+const NUM_COLOR = Color.dynamic(new Color("#3C3C43", 0.45), new Color("#EBEBF5", 0.45));
+const WEEKDAY_COLOR = Color.dynamic(new Color("#3C3C43", 0.35), new Color("#EBEBF5", 0.35));
+
+const WEEKDAY_LABELS = ["L", "M", "X", "J", "V", "S", "D"];
+const COL_WIDTH = 19;
 
 // ================= AUTH =================
 function apiKey() {
@@ -81,18 +85,36 @@ function dateStrFor(day) {
 
 // ================= WIDGET UI =================
 const widget = new ListWidget();
-widget.setPadding(13, 13, 13, 13);
+widget.setPadding(8, 8, 6, 8);
 
 const monthName = now.toLocaleDateString("es-BO", { month: "long" });
 const titleLabel = widget.addText(monthName.charAt(0).toUpperCase() + monthName.slice(1));
-titleLabel.font = Font.boldSystemFont(15);
+titleLabel.font = Font.boldSystemFont(11);
 
-widget.addSpacer(6);
+widget.addSpacer(2);
 
 try {
   const { strengthDays, racquetDays } = await loadMonthData();
   const strengthSet = new Set(strengthDays.filter(d => isCurrentMonth(d.date)).map(d => d.date));
   const racquetSet = new Set(racquetDays.filter(d => isCurrentMonth(d.date)).map(d => d.date));
+
+  // encabezado de días de la semana (L M X J V S D — mismo ancho fijo que las columnas de días)
+  const headerRow = widget.addStack();
+  headerRow.layoutHorizontally();
+  for (const label of WEEKDAY_LABELS) {
+    const cell = headerRow.addStack();
+    cell.size = new Size(COL_WIDTH, 9);
+    // vertical, no horizontal: centerAlignContent() solo centra en el eje
+    // transversal — con layoutHorizontally() el ancho (que es lo que hay que
+    // centrar acá) es el eje principal y queda sin efecto (bug encontrado en review)
+    cell.layoutVertically();
+    cell.centerAlignContent();
+    const t = cell.addText(label);
+    t.font = Font.systemFont(7);
+    t.textColor = WEEKDAY_COLOR;
+  }
+
+  widget.addSpacer(1);
 
   const totalCells = firstWeekday + daysInMonth;
   const rows = Math.ceil(totalCells / 7);
@@ -100,47 +122,49 @@ try {
   for (let r = 0; r < rows; r++) {
     const rowStack = widget.addStack();
     rowStack.layoutHorizontally();
-    rowStack.spacing = 2;
 
     for (let c = 0; c < 7; c++) {
       const cellIndex = r * 7 + c;
       const dayNum = cellIndex - firstWeekday + 1;
 
+      // ancho fijo por columna — así los números quedan alineados en grilla real
+      // (antes cada celda se angostaba/ensanchaba según el contenido: "3" vs "31")
       const cellStack = rowStack.addStack();
-      cellStack.layoutHorizontally();
+      cellStack.size = new Size(COL_WIDTH, 0);
+      cellStack.layoutVertically();
       cellStack.centerAlignContent();
-      cellStack.spacing = 2;
+      cellStack.spacing = 0.5;
 
       if (dayNum < 1 || dayNum > daysInMonth) {
-        cellStack.addSpacer();
-        continue;
+        continue; // celda vacía: igual reserva su ancho de columna (size ya seteado arriba)
       }
 
       const dateStr = dateStrFor(dayNum);
+      const hasStrength = strengthSet.has(dateStr);
+      const hasRacquet = racquetSet.has(dateStr);
+      const hasBoth = hasStrength && hasRacquet;
 
+      // el centrado real lo hace cellStack.centerAlignContent() (arriba) —
+      // WidgetText.centerAlignText() no tiene efecto dentro de un stack
       const numLabel = cellStack.addText(String(dayNum));
-      numLabel.font = Font.systemFont(8);
-      numLabel.textColor = NUM_COLOR;
-
-      const dotColumn = cellStack.addStack();
-      dotColumn.layoutVertically();
-      dotColumn.spacing = 1;
-      dotColumn.size = new Size(3, 0);
-
-      if (strengthSet.has(dateStr)) {
-        const dot = dotColumn.addStack();
-        dot.size = new Size(3, 3);
-        dot.cornerRadius = 1.5;
-        dot.backgroundColor = ACCENT_STRENGTH;
+      if (hasStrength || hasRacquet) {
+        numLabel.font = Font.boldSystemFont(12);
+        numLabel.textColor = hasStrength ? ACCENT_STRENGTH : ACCENT_RACQUET;
+      } else {
+        numLabel.font = Font.systemFont(11);
+        numLabel.textColor = NUM_COLOR;
       }
-      if (racquetSet.has(dateStr)) {
-        const dot = dotColumn.addStack();
-        dot.size = new Size(3, 3);
-        dot.cornerRadius = 1.5;
+
+      // puntito solo para el caso "hiciste los dos" — reservado en todas las
+      // celdas con día real para que la altura de fila no varíe entre celdas
+      const dot = cellStack.addStack();
+      dot.size = new Size(2.5, 2.5);
+      if (hasBoth) {
+        dot.cornerRadius = 1.25;
         dot.backgroundColor = ACCENT_RACQUET;
       }
     }
-    if (r < rows - 1) widget.addSpacer(4);
+    if (r < rows - 1) widget.addSpacer(1.5);
   }
 } catch (e) {
   const msg = widget.addText(String(e.message || e));
