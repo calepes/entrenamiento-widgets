@@ -63,6 +63,14 @@ No requiere reinstalar nada: es el mismo loader ya deployado en la carpeta de Sc
 
 **Pendiente:** confirmación visual de Cal con un nuevo screenshot (mismo ítem de Task 16 en BACKLOG.md).
 
+## Gotcha 2026-07-29: `addSpacer()` flexible en la raíz del `ListWidget` no centra
+
+Al centrar horizontalmente la grilla funcionó de una (spacers flexibles dentro de un `WidgetStack` anidado, commit `b0792eb`). Pero el mismo truco puesto directo en la raíz (`widget.addSpacer()`, sin volver a envolver en un stack) para centrar verticalmente **no se expandió** — Cal mandó screenshot confirmando que seguía pegado arriba con aire de sobra abajo (commit `c8f913d`, revertido en la práctica por `484121b`).
+
+Revisando los scripts ya probados de Cal (`Dólar Binance.js`, `Claude Max.js`, `Cumpleaños v1.js`) ninguno usa `addSpacer()` sin argumento directo sobre `widget` — siempre está anidado dentro de un `WidgetStack` explícito (`row = widget.addStack(); row.addSpacer()`). Fix aplicado: envolver TODO el contenido en un único `outerColumn = widget.addStack()` (el único hijo directo de `widget`, así hereda el alto completo) y mover los dos spacers de centrado vertical adentro de ese stack, en vez de directo en `widget`. Con eso el centrado vertical sí funcionó — pendiente de confirmación visual final igual que el resto de Task 16.
+
+**Regla general para cualquier widget nuevo:** los spacers flexibles (`addSpacer()` sin longitud) solo son confiables dentro de un `WidgetStack` anidado — nunca puestos directo en la raíz del `ListWidget`.
+
 ## Decisiones de diseño tomadas en el camino (por si hace falta el porqué)
 
 - El diseño pasó por varias iteraciones documentadas en el spec: heatmap anual diario→semanal (ilegible a escala Small), puntos por tipo→fondo alternado por mes (Opción B ganó sobre etiqueta lateral), 3 widgets finales (no 4 ni 2).
