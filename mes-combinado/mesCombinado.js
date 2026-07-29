@@ -52,7 +52,7 @@ const NUM_SIZE = 13;
 // columna del lunes), para compensar a ojo si la grilla se ve corrida hacia
 // la izquierda. Subir/bajar este número es la perilla para ajustar el
 // centrado fino; 0 lo desactiva.
-const LEFT_NUDGE = 1;
+const LEFT_NUDGE = 2;
 
 // ================= AUTH =================
 function apiKey() {
