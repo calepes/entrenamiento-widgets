@@ -3,8 +3,10 @@
 // icon-color: green; icon-glyph: table-tennis;
 
 /*************************************************
- * AÑO — PÁDEL · TENIS · heatmap semanal (52 semanas, grid 8×7)
- * Fondo alternado por mes + inicial en la 1ª semana de cada mes
+ * AÑO — PÁDEL · TENIS · heatmap semanal del AÑO CALENDARIO en curso
+ * (enero → diciembre, grid 8×7). Fondo alternado por mes + inicial en
+ * la 1ª semana de cada mes. Las semanas que todavía no ocurrieron se
+ * dibujan más tenues.
  * Scriptable · Widget Small · Light/Dark
  *************************************************/
 
@@ -19,12 +21,48 @@ const MONTH_MARK_COLOR = Color.dynamic(new Color("#000000", 0.55), new Color("#F
 const CACHE_DOT_COLOR = Color.dynamic(new Color("#8E8E93"), new Color("#8E8E93"));
 const EMPTY_A = Color.dynamic(new Color("#3C3C43", 0.09), new Color("#FFFFFF", 0.08));
 const EMPTY_B = Color.dynamic(new Color("#3C3C43", 0.05), new Color("#FFFFFF", 0.045));
+// semanas que todavía no ocurrieron: mucho más tenues, para que se lea
+// "esto está por venir" y no "acá no entrenaste"
+const FUTURE_A = Color.dynamic(new Color("#3C3C43", 0.03), new Color("#FFFFFF", 0.028));
+const FUTURE_B = Color.dynamic(new Color("#3C3C43", 0.018), new Color("#FFFFFF", 0.016));
 const LEVEL_1 = Color.dynamic(new Color("#22C55E", 0.35), new Color("#34D399", 0.35));
 const LEVEL_2 = Color.dynamic(new Color("#22C55E", 0.65), new Color("#34D399", 0.65));
 const LEVEL_3 = Color.dynamic(new Color("#22C55E", 1.0), new Color("#34D399", 1.0));
 
-const MONTH_BLOCKS = [4, 4, 5, 4, 4, 5, 4, 4, 5, 4, 4, 5]; // suman 52
 const MONTH_INITIALS = ["E", "F", "M", "A", "M", "J", "J", "A", "S", "O", "N", "D"];
+
+// ================= CALENDARIO DEL AÑO =================
+// El widget cubre el AÑO CALENDARIO en curso (1 ene → 31 dic), no una
+// ventana móvil de 52 semanas. Antes era móvil pero con las iniciales de
+// mes fijas [E,F,M,...], así que las etiquetas no se correspondían con las
+// fechas reales: los entrenamientos recientes caían en celdas rotuladas
+// "S O N D" y parecía haber actividad hasta fin de año (bug que encontró
+// Cal el 2026-07-29).
+const DAY_MS = 86400000;
+const YEAR = new Date().getFullYear();
+const JAN_1 = new Date(YEAR, 0, 1);
+// desplazamiento del 1 de enero dentro de su semana (0 = lunes), para que
+// cada columna de la grilla sea una semana lunes→domingo real
+const START_OFFSET = (JAN_1.getDay() + 6) % 7;
+const DAYS_IN_YEAR = Math.round((new Date(YEAR, 11, 31) - JAN_1) / DAY_MS) + 1;
+const TOTAL_WEEKS = Math.ceil((DAYS_IN_YEAR + START_OFFSET) / 7); // 52 o 53
+
+// índice de semana (0-based) de un día del año dado por su offset en días
+const weekOfDayIndex = (dayIdx) => Math.floor((dayIdx + START_OFFSET) / 7);
+
+// mes (0-11) representativo de una semana: el de su primer día dentro del año
+function monthOfWeek(w) {
+  const dayIdx = Math.max(0, w * 7 - START_OFFSET);
+  return new Date(YEAR, 0, 1 + Math.min(dayIdx, DAYS_IN_YEAR - 1)).getMonth();
+}
+
+// última semana con datos posibles: la que contiene hoy (las siguientes
+// todavía no ocurrieron)
+const TODAY = new Date();
+TODAY.setHours(0, 0, 0, 0);
+const CURRENT_WEEK = TODAY.getFullYear() === YEAR
+  ? weekOfDayIndex(Math.round((TODAY - JAN_1) / DAY_MS))
+  : TOTAL_WEEKS - 1;
 
 // ================= AUTH =================
 function apiKey() {
@@ -36,7 +74,9 @@ function apiKey() {
 
 // ================= FETCH =================
 async function fetchHeatmap() {
-  const req = new Request(`${BASE_URL}/workouts/heatmap?category=${CATEGORY}&days=365&key=${encodeURIComponent(apiKey())}`);
+  // 400 y no 365: hay que cubrir desde el 1 de enero incluso estando a fin
+  // de diciembre de un año bisiesto (366 días atrás), con margen
+  const req = new Request(`${BASE_URL}/workouts/heatmap?category=${CATEGORY}&days=400&key=${encodeURIComponent(apiKey())}`);
   req.timeoutInterval = 10;
   const json = await req.loadJSON();
   return json.data || [];
@@ -72,19 +112,17 @@ async function loadDays() {
 }
 
 // ================= AGGREGATE =================
-// agrupa los días sueltos devueltos por el worker en 52 semanas;
-// semana 51 = la más reciente (contiene hoy), semana 0 = hace 52 semanas
+// agrupa los días sueltos devueltos por el worker en las semanas del año
+// calendario en curso; semana 0 = la que contiene el 1 de enero
 function aggregateByWeek(days) {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const weekCounts = new Array(52).fill(0);
+  const weekCounts = new Array(TOTAL_WEEKS).fill(0);
 
   for (const d of days) {
     const date = new Date(d.date + "T00:00:00");
-    const diffDays = Math.floor((today - date) / 86400000);
-    if (diffDays < 0 || diffDays >= 364) continue;
-    const weekIndex = 51 - Math.floor(diffDays / 7);
-    if (weekIndex >= 0 && weekIndex < 52) weekCounts[weekIndex] += d.count;
+    if (date.getFullYear() !== YEAR) continue; // datos de otros años: fuera
+    const dayIdx = Math.round((date - JAN_1) / DAY_MS);
+    const weekIndex = weekOfDayIndex(dayIdx);
+    if (weekIndex >= 0 && weekIndex < TOTAL_WEEKS) weekCounts[weekIndex] += d.count;
   }
   return weekCounts;
 }
@@ -129,19 +167,21 @@ function draw(weekCounts, isCache) {
   const cellW = (gridWidth - gap * (cols - 1)) / cols;
   const cellH = (gridHeight - gap * (rows - 1)) / rows;
 
-  const monthOfWeek = [];
-  MONTH_BLOCKS.forEach((len, mIdx) => { for (let i = 0; i < len; i++) monthOfWeek.push(mIdx); });
-
-  for (let w = 0; w < 52; w++) {
+  for (let w = 0; w < TOTAL_WEEKS; w++) {
     const col = Math.floor(w / rows);
     const row = w % rows;
     const x = PAD + col * (cellW + gap);
     const y = gridTop + row * (cellH + gap);
 
-    const mIdx = monthOfWeek[w];
-    const isFirstOfMonth = w === 0 || monthOfWeek[w - 1] !== mIdx;
+    // mes calculado de la fecha real de la semana, no de bloques fijos
+    const mIdx = monthOfWeek(w);
+    const isFirstOfMonth = w === 0 || monthOfWeek(w - 1) !== mIdx;
+    const isFuture = w > CURRENT_WEEK;
     const activityColor = levelColorFor(weekCounts[w]);
-    const fill = activityColor ?? (mIdx % 2 === 0 ? EMPTY_A : EMPTY_B);
+    const emptyColor = isFuture
+      ? (mIdx % 2 === 0 ? FUTURE_A : FUTURE_B)
+      : (mIdx % 2 === 0 ? EMPTY_A : EMPTY_B);
+    const fill = activityColor ?? emptyColor;
 
     ctx.setFillColor(fill);
     ctx.fillRect(new Rect(x, y, cellW, cellH));
