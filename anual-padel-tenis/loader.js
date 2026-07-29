@@ -5,7 +5,10 @@
 const REPO = "calepes/entrenamiento-widgets";
 const BRANCH = "main";
 const FILE = "anual-padel-tenis/anualPadelTenis.js";
-const RAW_URL = `https://raw.githubusercontent.com/${REPO}/${BRANCH}/${FILE}`;
+// cache-busting: raw.githubusercontent.com manda cache-control: max-age=300,
+// y sin esto el propio dispositivo (no el CDN de GitHub) puede reusar una
+// respuesta vieja hasta 5 min sin volver a pedirle nada al servidor
+const RAW_URL = `https://raw.githubusercontent.com/${REPO}/${BRANCH}/${FILE}?_=${Date.now()}`;
 
 const req = new Request(RAW_URL);
 req.timeoutInterval = 10;
