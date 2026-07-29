@@ -231,8 +231,12 @@ try {
       const hasRacquet = racquetSet.has(dateStr);
       const hasBoth = hasStrength && hasRacquet;
 
-      // el centrado real lo hace cellStack.centerAlignContent() (arriba) —
-      // WidgetText.centerAlignText() no tiene efecto dentro de un stack
+      // Nota: `centerAlignContent()` en un stack VERTICAL no centra el eje
+      // horizontal (parece centrar el principal) — por eso acá el centrado
+      // NO depende de él sino de que todos los textos midan lo mismo (pad2).
+      // La alternativa que también funciona, usada en Dólar Binance.js, es
+      // `centerAlignText()` sobre el WidgetText dentro de un stack más ancho
+      // que el texto.
       //
       // Dos condiciones para que la separación se vea IGUAL en toda la grilla,
       // sin importar si el día es de uno o dos dígitos ni si está marcado:
