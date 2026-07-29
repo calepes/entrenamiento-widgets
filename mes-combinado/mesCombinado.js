@@ -28,14 +28,13 @@ const CANVAS = 158;
 
 // medidas usadas para calcular el padding (ver más abajo) — deben
 // coincidir con lo que realmente se renderiza en la sección WIDGET UI.
-// Ajustadas 2026-07-29 tras ver que la primera estimación (19pt/fila)
-// dejaba aire de sobra al fondo — Scriptable no expone el alto real de
-// línea de una fuente, así que esto es una aproximación afinada a ojo
-// contra una captura real; si queda desalineado, ajustar acá.
-const HEADER_HEIGHT = 12;
-const HEADER_GAP = 3;
-const ROW_HEIGHT = 16; // número bold 13pt + spacing 0.5 + puntito 3
-const ROW_GAP = 3;
+// Ajustadas 2026-07-29 (v2) contra una referencia visual de Cal — números
+// más grandes y filas más separadas para que la grilla realmente llene el
+// widget, en vez de dejar tanto margen muerto arriba/abajo.
+const HEADER_HEIGHT = 13;
+const HEADER_GAP = 5;
+const ROW_HEIGHT = 17; // número bold 14pt + spacing 0.5 + puntito 3
+const ROW_GAP = 5;
 const MIN_PAD = 6;
 
 // ================= AUTH =================
@@ -135,14 +134,14 @@ try {
   headerRow.layoutHorizontally();
   for (const label of WEEKDAY_LABELS) {
     const cell = headerRow.addStack();
-    cell.size = new Size(COL_WIDTH, 14);
+    cell.size = new Size(COL_WIDTH, 15);
     // vertical, no horizontal: centerAlignContent() solo centra en el eje
     // transversal — con layoutHorizontally() el ancho (que es lo que hay que
     // centrar acá) es el eje principal y queda sin efecto (bug encontrado en review)
     cell.layoutVertically();
     cell.centerAlignContent();
     const t = cell.addText(label);
-    t.font = Font.semiboldSystemFont(12);
+    t.font = Font.semiboldSystemFont(13);
     t.textColor = WEEKDAY_COLOR;
   }
 
@@ -182,10 +181,10 @@ try {
       // igual en toda la grilla
       const numLabel = cellStack.addText(String(dayNum));
       if (hasStrength || hasRacquet) {
-        numLabel.font = Font.boldMonospacedSystemFont(13);
+        numLabel.font = Font.boldMonospacedSystemFont(14);
         numLabel.textColor = hasStrength ? ACCENT_STRENGTH : ACCENT_RACQUET;
       } else {
-        numLabel.font = Font.regularMonospacedSystemFont(12);
+        numLabel.font = Font.regularMonospacedSystemFont(13);
         numLabel.textColor = NUM_COLOR;
       }
 
